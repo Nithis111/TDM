@@ -579,7 +579,7 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
         t.ejected = false;
 
         if (t.readonly) {
-            if (t.readonly()) {
+            if (t.readonly(storage)) {
                 main.Error(main.getString(R.string.filedialog_readonly) + " " + storage.getTargetName(t.path));
                 return;
             }

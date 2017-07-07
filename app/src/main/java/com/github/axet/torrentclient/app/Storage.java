@@ -245,9 +245,11 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
             return false;
         }
 
-        public boolean readonly() {
+        public boolean readonly(Storage storage) {
             String s = path.getScheme();
-            if (s.startsWith(ContentResolver.SCHEME_FILE)) {
+            if (Build.VERSION.SDK_INT >= 21 && s.startsWith(ContentResolver.SCHEME_CONTENT)) {
+                return !storage.permitted(path, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            } else if (s.startsWith(ContentResolver.SCHEME_FILE)) {
                 if (Libtorrent.metaTorrent(t) && completed()) {
                     return false;  // ignore, readonly we fully downloaded
                 }
@@ -433,7 +435,7 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
                         if (tt.altered(this)) {
                             tt.check = true;
                         }
-                        if (tt.readonly()) {
+                        if (tt.readonly(this)) {
                             tt.readonly = true;
                         }
                     }
