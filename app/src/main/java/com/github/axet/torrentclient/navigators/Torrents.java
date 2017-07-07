@@ -571,7 +571,7 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
             }
         }
 
-        if (t.ejected(storage)) {
+        if (storage.ejected(t.path)) {
             Toast.makeText(main, R.string.torrent_notfound, Toast.LENGTH_LONG).show();
             t.ejected = true;
             return;
