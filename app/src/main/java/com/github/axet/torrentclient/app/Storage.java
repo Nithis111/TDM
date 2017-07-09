@@ -775,12 +775,20 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
             return Uri.fromFile(super.getStoragePath(f));
     }
 
+    public static boolean isSame(Uri u1, Uri u2) {
+        String s1 = u1.getScheme();
+        String s2 = u2.getScheme();
+        if (!s1.equals(s2))
+            return false;
+        return u1.equals(u2);
+    }
+
     public void migrateLocalStorage() {
         File l = getLocalStorage();
         Uri t = getStoragePath();
 
         // if we are local return
-        if (l.equals(t))
+        if (isSame(Uri.fromFile(l), t))
             return;
 
         // we are not local
@@ -810,7 +818,7 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
                         if (f.exists()) {
                             String n = getNameNoExt(f);
                             String e = getExt(f);
-                            Uri t = getNextFile(torrent.path, n, e);
+                            Uri t = getNextFile(dir, n, e);
                             move(f, t);
                             // target name changed update torrent meta or pause it
                             if (!getDocumentName(t).equals(name)) {
@@ -877,32 +885,40 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
         if (s.startsWith(ContentResolver.SCHEME_CONTENT)) {
             Log.d(TAG, "migrate: " + f + " --> " + getTargetName(dir));
             if (f.isDirectory()) {
-                Uri t = createFolder(dir, f.getName());
-                return move(f, t);
+                Uri tt = createFolder(dir, f.getName());
+                File[] files = f.listFiles();
+                if (files != null) {
+                    for (File n : files) {
+                        move(n, tt);
+                    }
+                }
+            } else {
+                Uri t = child(dir, f.getName());
+                super.move(f, t);
             }
-            return move(f, dir);
+            FileUtils.deleteQuietly(f);
+            return dir;
         } else if (s.startsWith(ContentResolver.SCHEME_FILE)) {
             Log.d(TAG, "migrate: " + f + " --> " + dir.getPath());
             if (f.isDirectory()) {
-                String[] files = f.list();
+                File[] files = f.listFiles();
                 if (files != null) {
-                    for (String n : files) {
-                        File ff = new File(f, n);
-                        Uri u = child(dir, n);
-                        move(ff, u);
+                    for (File ff : files) {
+                        File tt = new File(getFile(dir), ff.getName());
+                        tt.mkdirs();
+                        move(ff, tt);
                     }
                 }
                 FileUtils.deleteQuietly(f);
                 return dir;
+            } else {
+                File to = new File(dir.getPath());
+                File parent = to.getParentFile();
+                if (!parent.exists() && !parent.mkdirs()) {
+                    throw new RuntimeException("No permissions: " + parent);
+                }
+                return Uri.fromFile(move(f, to));
             }
-
-            File to = new File(dir.getPath());
-            File parent = to.getParentFile();
-            if (!parent.exists() && !parent.mkdirs()) {
-                throw new RuntimeException("No permissions: " + parent);
-            }
-
-            return Uri.fromFile(com.github.axet.androidlibrary.app.Storage.move(f, to));
         } else {
             throw new RuntimeException("unknown uri");
         }
