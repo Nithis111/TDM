@@ -797,10 +797,34 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
         migrateFiles();
     }
 
+    public boolean isLocalStorage(Uri u) {
+        String s = u.getScheme();
+        if (!s.startsWith(ContentResolver.SCHEME_FILE))
+            return false;
+        File f = new File(u.getPath());
+        String p = f.getPath();
+        File l1 = getLocalInternal();
+        File l2 = getLocalExternal();
+        if (l2 != null && p.startsWith(l2.getPath()))
+            return true;
+        if (Build.VERSION.SDK_INT >= 19) {
+            File[] ff = getContext().getExternalFilesDirs("");
+            if (ff != null) {
+                for (File l : ff) {
+                    if (l == null)
+                        continue;
+                    if (p.startsWith(l.getPath()))
+                        return true;
+                }
+            }
+        }
+        if (p.startsWith(l1.getPath()))
+            return true;
+        return false;
+    }
+
     void migrateTorrents() {
-        File l = getLocalStorage();
         Uri dir = getStoragePath();
-        String s = dir.getScheme();
 
         boolean touch = false;
         // migrate torrents, then migrate download data
@@ -809,43 +833,20 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
             String ts = torrent.path.getScheme();
             if (ts.startsWith(ContentResolver.SCHEME_FILE)) { // only migrate files torrents
                 String tf = torrent.path.getPath(); // torrent file
-                if (tf.startsWith(l.getPath())) { // only migrate torrent from local storage
+                if (isLocalStorage(torrent.path)) { // only migrate torrent from local storage
                     Libtorrent.stopTorrent(torrent.t);
                     String name = Libtorrent.torrentName(torrent.t);
-                    if (s.startsWith(ContentResolver.SCHEME_CONTENT)) {
-                        File f = new File(tf, name);
-                        touch = true;
-                        if (f.exists()) {
-                            String n = getNameNoExt(f);
-                            String e = getExt(f);
-                            Uri t = getNextFile(dir, n, e);
-                            move(f, t);
-                            // target name changed update torrent meta or pause it
-                            if (!getDocumentName(t).equals(name)) {
-                                // TODO replace with rename when it will be impelemented
-                                //Libtorrent.TorrentFileRename(torrent.t, 0, tt.getName());
-                            }
+                    File f = new File(tf, name);
+                    touch = true;
+                    if (f.exists()) {
+                        Uri t = migrate(f, dir);
+                        String r = getDocumentName(t);
+                        if (!r.equals(name)) { // target name changed update torrent meta or pause it
+                            Libtorrent.torrentRename(torrent.t, r);
+                            torrent.check = true;
                         }
-                        torrent.path = dir; // new torrent home = current storage
-                    } else if (s.startsWith(ContentResolver.SCHEME_FILE)) {
-                        if (!Storage.permitted(context, PERMISSIONS))
-                            return; // no file operations if not permitted
-                        File f = new File(tf, name);
-                        touch = true;
-                        if (f.exists()) {
-                            File d = new File(dir.getPath());
-                            File t = getNextFile(new File(d, f.getName()));
-                            move(f, t);
-                            // target name changed update torrent meta or pause it
-                            if (!t.getName().equals(name)) {
-                                // TODO replace with rename when it will be impelemented
-                                //Libtorrent.TorrentFileRename(torrent.t, 0, tt.getName());
-                            }
-                        }
-                        torrent.path = dir; // new torrent home = current storage
-                    } else {
-                        throw new RuntimeException("unknown uri");
                     }
+                    torrent.path = dir; // new torrent home = current storage
                 }
             }
         }
@@ -873,54 +874,7 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
             return;
 
         for (File f : ff) {
-            String n = f.getName();
-            String e = getExt(f);
-            Uri t = getNextFile(dir, n, e);
-            move(f, t); // move file and sub dirs
-        }
-    }
-
-    public Uri move(File f, Uri dir) {
-        String s = dir.getScheme();
-        if (s.startsWith(ContentResolver.SCHEME_CONTENT)) {
-            Log.d(TAG, "migrate: " + f + " --> " + getTargetName(dir));
-            if (f.isDirectory()) {
-                Uri tt = createFolder(dir, f.getName());
-                File[] files = f.listFiles();
-                if (files != null) {
-                    for (File n : files) {
-                        move(n, tt);
-                    }
-                }
-            } else {
-                Uri t = child(dir, f.getName());
-                super.move(f, t);
-            }
-            FileUtils.deleteQuietly(f);
-            return dir;
-        } else if (s.startsWith(ContentResolver.SCHEME_FILE)) {
-            Log.d(TAG, "migrate: " + f + " --> " + dir.getPath());
-            if (f.isDirectory()) {
-                File[] files = f.listFiles();
-                if (files != null) {
-                    for (File ff : files) {
-                        File tt = new File(getFile(dir), ff.getName());
-                        tt.mkdirs();
-                        move(ff, tt);
-                    }
-                }
-                FileUtils.deleteQuietly(f);
-                return dir;
-            } else {
-                File to = new File(dir.getPath());
-                File parent = to.getParentFile();
-                if (!parent.exists() && !parent.mkdirs()) {
-                    throw new RuntimeException("No permissions: " + parent);
-                }
-                return Uri.fromFile(move(f, to));
-            }
-        } else {
-            throw new RuntimeException("unknown uri");
+            migrate(f, dir); // move file and sub dirs
         }
     }
 
