@@ -327,18 +327,10 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
                 engies.load();
 
                 if (Build.VERSION.SDK_INT >= 21) {
-                    try {
-                        storage.migrateLocalStorage();
-                    } catch (RuntimeException e) {
-                        Error(e);
-                    }
+                    migrateLocalStorage();
                 } else {
                     if (Storage.permitted(MainActivity.this, PERMISSIONS)) {
-                        try {
-                            storage.migrateLocalStorage();
-                        } catch (RuntimeException e) {
-                            Error(e);
-                        }
+                        migrateLocalStorage();
                     } else {
                         // with no permission we can't choise files to 'torrent', or select downloaded torrent
                         // file, since we have no persmission to user files.
@@ -677,6 +669,8 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
             }
         }
 
+        migrateLocalStorage();
+
         if (themeId != getAppTheme()) {
             finish();
             MainActivity.startActivity(this);
@@ -740,40 +734,34 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
-            case 1:
-                if (Storage.permitted(this, permissions)) {
-                    try {
-                        storage.migrateLocalStorage();
-                    } catch (RuntimeException e) {
-                        Error(e);
-                    }
-                    create.setVisibility(View.VISIBLE);
-                    add.setVisibility(View.VISIBLE);
-                } else {
-                    Toast.makeText(this, R.string.not_permitted, Toast.LENGTH_SHORT).show();
-                }
-                break;
             case RESULT_ADD_ENGINE:
-                if (Storage.permitted(this, permissions)) {
-                    drawer.openNavFiles();
-                } else {
+                if (!Storage.permitted(this, permissions)) {
                     Toast.makeText(this, R.string.not_permitted, Toast.LENGTH_SHORT).show();
                 }
+                drawer.openNavFiles();
                 break;
             case RESULT_CREATE_TORRENT:
-                if (Storage.permitted(this, PERMISSIONS)) {
-                    createTorrent();
-                } else {
+                if (!Storage.permitted(this, PERMISSIONS)) {
                     Toast.makeText(this, R.string.not_permitted, Toast.LENGTH_SHORT).show();
                 }
+                createTorrent();
                 break;
             case RESULT_ADD_TORRENT:
-                if (Storage.permitted(this, PERMISSIONS)) {
-                    addTorrent();
-                } else {
+                if (!Storage.permitted(this, PERMISSIONS)) {
                     Toast.makeText(this, R.string.not_permitted, Toast.LENGTH_SHORT).show();
                 }
+                addTorrent();
                 break;
+        }
+    }
+
+    void migrateLocalStorage() {
+        try {
+            if (storage == null)
+                return;
+            storage.migrateLocalStorage();
+        } catch (RuntimeException e) {
+            Error(e);
         }
     }
 
