@@ -41,10 +41,12 @@ import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.activities.MainActivity;
 import com.github.axet.torrentclient.app.MainApplication;
 import com.github.axet.torrentclient.app.SearchEngine;
+import com.github.axet.torrentclient.app.Storage;
 import com.github.axet.torrentclient.dialogs.BrowserDialogFragment;
 import com.github.axet.torrentclient.dialogs.LoginDialogFragment;
 import com.github.axet.torrentclient.net.HttpProxyClient;
 
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
@@ -52,6 +54,7 @@ import org.jsoup.select.Elements;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -74,6 +77,8 @@ import cz.msebera.android.httpclient.cookie.Cookie;
 import cz.msebera.android.httpclient.impl.client.BasicCookieStore;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.impl.client.HttpClientBuilder;
+import libtorrent.File;
+import libtorrent.Libtorrent;
 
 public class Search extends BaseAdapter implements DialogInterface.OnDismissListener,
         UnreadCountDrawable.UnreadCount, MainActivity.NavigatorInterface,
@@ -1225,7 +1230,21 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                                     if (w.getError() != null) {
                                         Error(w.getError());
                                     } else {
-                                        main.addTorrentFromBytes(w.getBuf());
+                                        try {
+                                            Storage.Torrent tt = main.addTorrentFromBytes(w.getBuf());
+                                            String filter = item.search.get("torrent_filter");
+                                            if (filter != null) {
+                                                FileFilter fileFilter = new WildcardFileFilter(filter);
+                                                long l = Libtorrent.torrentFilesCount(tt.t);
+                                                for (int i = 0; i < l; i++) {
+                                                    File f = Libtorrent.torrentFiles(tt.t, i);
+                                                    boolean b = fileFilter.accept(new java.io.File(f.getPath()));
+                                                    Libtorrent.torrentFilesCheck(tt.t, i, b);
+                                                }
+                                            }
+                                        } catch (RuntimeException e) {
+                                            Error(e);
+                                        }
                                     }
                                     requestCancel();  // destory looper thread
                                 }

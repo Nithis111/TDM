@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "name": "librivox.org",
+  "home": {
+    "get": "http://librivox.org"
+  },
+  "news": {
+    "get": "https://librivox.org/category/blog/",
+    "list": ".post",
+    "title": ".post-title",
+    "details": ".post a:regex(.*href=\"([^\"]*)\".*)",
+    "date": ".meta a:regex((.*))",
+    "next": ".pagination-older:regex(.*href=\"([^\"]*)\".*)"
+  },
+  "crawl": {
+    "get": "crawls",
+    "list": ".catalog-result",
+    "title": ".result-data h3",
+    "details": ".result-data h3 a:regex(.*href=\"([^\"]*)\".*)",
+    "details_js": "var ee = document.querySelectorAll('.page-number')\nfor(var i = 0; i < ee.length; i++) {\n  var e = ee[i];\n  e.href = location.href.replace(/(search_page=)(\\d+)/, '$1' + e.getAttribute('data-page_number'))\n}",
+    "image": ".book-cover img:regex([^>]*src=\"([^\"]*)\".*)",
+    "next": ".page-number.active+.page-number:regex(.*href=\"([^\"]*)\".*)"
+  },
+  "crawls": {
+    "New": "https://librivox.org/search?primary_key=0&search_category=title&search_page=1&search_form=get_results"
+  },
+  "top": {
+    "get": "tops",
+    "grid": "crawl",
+	"torrent_filter": "*64kb.mp3",
+    "update": "details"
+  },
+  "tops": {
+    "Recents": "substr(date,7,4)||substr(date,4,2)||substr(date,1,2)||substr(date,12,5) desc"
+  },
+  "details": {
+    "torrent": "a[href$=torrent].book-download-btn:regex(.*href=\"([^\"]*)\".*)"
+  },
+  "search": {
+    "get": "substr(date,7,4)||substr(date,4,2)||substr(date,1,2)||substr(date,12,5) desc",
+    "grid": "crawl",
+	"torrent_filter": "*64kb.mp3",
+    "update": "details"
+  }
+}

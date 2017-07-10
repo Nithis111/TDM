@@ -943,21 +943,22 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         updateUnread();
     }
 
-    public void addTorrentFromBytes(byte[] buf) {
+    public Storage.Torrent addTorrentFromBytes(byte[] buf) {
         final SharedPreferences shared = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-        addTorrentFromBytes(storage.getStoragePath(), buf, shared.getBoolean(MainApplication.PREFERENCE_DIALOG, false));
+        return addTorrentFromBytes(storage.getStoragePath(), buf, shared.getBoolean(MainApplication.PREFERENCE_DIALOG, false));
     }
 
-    public void addTorrentFromBytes(Uri pp, byte[] buf, boolean dialog) {
+    public Storage.Torrent addTorrentFromBytes(Uri pp, byte[] buf, boolean dialog) {
+        Storage.Torrent tt = null;
         try {
             if (dialog) {
-                Storage.Torrent tt = storage.prepareTorrentFromBytes(pp, buf);
+                tt = storage.prepareTorrentFromBytes(pp, buf);
                 if (tt == null) {
                     throw new RuntimeException(Libtorrent.error());
                 }
                 addTorrentDialog(tt.t, pp, tt.hash);
             } else {
-                Storage.Torrent tt = storage.addTorrentFromBytes(buf);
+                tt = storage.addTorrentFromBytes(buf);
                 torrentUnread(tt);
                 Toast.makeText(MainActivity.this, getString(R.string.added) + " " + tt.name(), Toast.LENGTH_SHORT).show();
             }
@@ -966,6 +967,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         }
         torrents.notifyDataSetChanged();
         updateUnread();
+        return tt;
     }
 
     void addTorrentDialog(long t, Uri path, String hash) {
