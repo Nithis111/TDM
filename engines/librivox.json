@@ -27,6 +27,7 @@
   "top": {
     "get": "tops",
     "grid": "crawl",
+	"torrent_filter": "*64kb.mp3",
     "update": "details"
   },
   "tops": {
@@ -38,6 +39,7 @@
   "search": {
     "get": "substr(date,7,4)||substr(date,4,2)||substr(date,1,2)||substr(date,12,5) desc",
     "grid": "crawl",
+	"torrent_filter": "*64kb.mp3",
     "update": "details"
   }
 }
