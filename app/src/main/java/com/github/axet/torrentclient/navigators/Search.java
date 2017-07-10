@@ -1230,20 +1230,18 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                                     if (w.getError() != null) {
                                         Error(w.getError());
                                     } else {
-                                        try {
-                                            Storage.Torrent tt = main.addTorrentFromBytes(w.getBuf());
-                                            String filter = item.search.get("torrent_filter");
-                                            if (filter != null) {
-                                                FileFilter fileFilter = new WildcardFileFilter(filter);
-                                                long l = Libtorrent.torrentFilesCount(tt.t);
-                                                for (int i = 0; i < l; i++) {
-                                                    File f = Libtorrent.torrentFiles(tt.t, i);
-                                                    boolean b = fileFilter.accept(new java.io.File(f.getPath()));
-                                                    Libtorrent.torrentFilesCheck(tt.t, i, b);
-                                                }
+                                        Storage.Torrent tt = main.addTorrentFromBytes(w.getBuf());
+                                        if (tt == null)
+                                            return;
+                                        String filter = item.search.get("torrent_filter");
+                                        if (filter != null) {
+                                            FileFilter fileFilter = new WildcardFileFilter(filter);
+                                            long l = Libtorrent.torrentFilesCount(tt.t);
+                                            for (int i = 0; i < l; i++) {
+                                                File f = Libtorrent.torrentFiles(tt.t, i);
+                                                boolean b = fileFilter.accept(new java.io.File(f.getPath()));
+                                                Libtorrent.torrentFilesCheck(tt.t, i, b);
                                             }
-                                        } catch (RuntimeException e) {
-                                            Error(e);
                                         }
                                     }
                                     requestCancel();  // destory looper thread
