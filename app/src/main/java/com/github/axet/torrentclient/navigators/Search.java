@@ -1296,7 +1296,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     public WebViewCustom inject(HttpProxyClient http, final String url, final HttpClient.DownloadResponse html, String js, String js_post, final Inject exec) {
         Log.d(TAG, "inject()");
 
-        String result = ";\n\ntorrentclient.result(document.documentElement.outerHTML);";
+        String func = "main: {\n  function result() {\n    torrentclient.result(document.documentElement.outerHTML);\n  }\n\n";
+        String result = ";\n\n  result();\n}";
 
         String script = null;
         if (js != null) {
@@ -1304,11 +1305,11 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         }
         String script_post = null;
         if (js_post != null) {
-            script_post = js_post + result;
+            script_post = func + js_post + result;
         } else if (js != null) {
-            script += result;
+            script = func + script + result;
         } else { // we must have result() called no matter what
-            script = result;
+            script = func + result;
         }
 
         final WebViewCustom web = new WebViewCustom(context) {

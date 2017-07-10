@@ -17,6 +17,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
 import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -28,6 +29,7 @@ import com.github.axet.androidlibrary.app.AlarmManager;
 import com.github.axet.androidlibrary.net.HttpClient;
 import com.github.axet.androidlibrary.widgets.HeaderGridView;
 import com.github.axet.androidlibrary.widgets.ThemeUtils;
+import com.github.axet.androidlibrary.widgets.WebViewCustom;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.activities.MainActivity;
 import com.github.axet.torrentclient.app.SearchEngine;
@@ -609,7 +611,7 @@ public class Crawl extends Search {
                 State s = crawls.get(k);
                 map.put(k, s.save().toString());
             }
-            json.put("crawls", SearchEngine.toJSON(map));
+            json.put("crawls", WebViewCustom.toJSON(map));
             return json.toString();
         } catch (JSONException e) {
             throw new RuntimeException(e);
@@ -622,7 +624,7 @@ public class Crawl extends Search {
             JSONObject json = new JSONObject(state);
             JSONObject cc = json.optJSONObject("crawls");
             if (cc != null) {
-                Map<String, Object> c = SearchEngine.toMap(cc);
+                Map<String, Object> c = WebViewCustom.toMap(cc);
                 for (String k : c.keySet()) {
                     String ss = (String) c.get(k);
                     State s = crawls.get(k);
@@ -639,7 +641,7 @@ public class Crawl extends Search {
         }
     }
 
-    void crawlLoad(State state) {
+    void crawlLoad(final State state) {
         String url = state.next;
         if (url == null || url.isEmpty())
             url = state.url;
@@ -650,12 +652,55 @@ public class Crawl extends Search {
         }
         if (html != null) {
             crawlHtml(state, url, html);
-            return;
         }
     }
 
-    void crawlHtml(State state, String url, final HttpClient.DownloadResponse html) {
-        crawlList(state, url, html.getHtml());
+    void crawlHtml(final State state, final String url, final HttpClient.DownloadResponse html) {
+        final String js = state.s.get("details_js");
+        final String js_post = state.s.get("details_js_post");
+        if (js != null || js_post != null) {
+            final Object lock = new Object();
+            final ArrayList<WebViewCustom> ww = new ArrayList<>();
+            Runnable request = new Runnable() {
+                @Override
+                public void run() {
+                    WebViewCustom web = inject(crawlHttp, url, html, js, js_post, new Inject() {
+                        @JavascriptInterface
+                        public void result(final String html) {
+                            super.result(html);
+                            crawlList(state, url, html);
+                            synchronized (lock) {
+                                lock.notifyAll();
+                            }
+                        }
+
+                        @JavascriptInterface
+                        public String json() {
+                            return super.json();
+                        }
+                    });
+                    ww.add(web);
+                }
+            };
+            handler.post(request); // web must run on UI thread
+            synchronized (lock) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            request = new Runnable() {
+                @Override
+                public void run() {
+                    for (WebViewCustom w : ww)
+                        w.destroy();
+                }
+            };
+            handler.post(request); // web must run on UI thread
+        } else {
+            crawlList(state, url, html.getHtml());
+        }
     }
 
     void crawlList(final State state, String url, String html) {

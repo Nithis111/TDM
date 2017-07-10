@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 
 import com.github.axet.androidlibrary.net.HttpClient;
+import com.github.axet.androidlibrary.widgets.WebViewCustom;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
@@ -26,60 +27,10 @@ public class SearchEngine {
 
     Map<String, Object> map = new LinkedHashMap<>();
 
-    public static Object toJSON(Object object) throws JSONException {
-        if (object instanceof Map) {
-            JSONObject json = new JSONObject();
-            Map map = (Map) object;
-            for (Object key : map.keySet()) {
-                json.put(key.toString(), toJSON(map.get(key)));
-            }
-            return json;
-        } else if (object instanceof Iterable) {
-            JSONArray json = new JSONArray();
-            for (Object value : ((Iterable) object)) {
-                json.put(value);
-            }
-            return json;
-        } else {
-            return object;
-        }
-    }
-
-    public static Map<String, Object> toMap(JSONObject object) throws JSONException {
-        Map<String, Object> map = new LinkedHashMap<String, Object>();
-        Iterator<String> keysItr = object.keys();
-        while (keysItr.hasNext()) {
-            String key = keysItr.next();
-            Object value = object.get(key);
-
-            if (value instanceof JSONArray) {
-                value = toList((JSONArray) value);
-            } else if (value instanceof JSONObject) {
-                value = toMap((JSONObject) value);
-            }
-            map.put(key, value);
-        }
-        return map;
-    }
-
-    public static List<Object> toList(JSONArray array) throws JSONException {
-        List<Object> list = new ArrayList<>();
-        for (int i = 0; i < array.length(); i++) {
-            Object value = array.get(i);
-            if (value instanceof JSONArray) {
-                value = toList((JSONArray) value);
-            } else if (value instanceof JSONObject) {
-                value = toMap((JSONObject) value);
-            }
-            list.add(value);
-        }
-        return list;
-    }
-
     public JSONObject loadJson(String json) {
         try {
             JSONObject obj = new JSONObject(json);
-            map = toMap(obj);
+            map = WebViewCustom.toMap(obj);
             return obj;
         } catch (JSONException e) {
             throw new RuntimeException(e);
@@ -134,7 +85,7 @@ public class SearchEngine {
 
     public String save() {
         try {
-            JSONObject json = (JSONObject) toJSON(map);
+            JSONObject json = (JSONObject) WebViewCustom.toJSON(map);
             return json.toString(2);
         } catch (JSONException e) {
             throw new RuntimeException(e);
