@@ -99,7 +99,6 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     Thread thread;
     Looper threadLooper;
 
-    HttpProxyClient httpImages; // keep separated, to make requestCancel work
     HttpProxyClient http;
     WebViewCustom web;
     SearchEngine engine;
@@ -364,8 +363,18 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         SearchItem item;
         public HashSet<View> views = new HashSet<>(); // one task can set multiple ImageView's, except reused ones
         Bitmap result;
+        HttpProxyClient httpImages; // keep separated, to make requestCancel work
 
         public DownloadImageTask(View v) {
+            httpImages = new HttpProxyClient() {
+                @Override
+                protected CloseableHttpClient build(HttpClientBuilder builder) {
+                    builder.setUserAgent(Search.USER_AGENT); // search requests shold go from desktop browser
+                    return super.build(builder);
+                }
+            };
+            httpImages.update(context);
+            httpImages.setCookieStore(http.getCookieStore());
             views.add(v);
         }
 
@@ -444,14 +453,6 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             }
         };
         http.update(context);
-        httpImages = new HttpProxyClient() {
-            @Override
-            protected CloseableHttpClient build(HttpClientBuilder builder) {
-                builder.setUserAgent(Search.USER_AGENT); // search requests shold go from desktop browser
-                return super.build(builder);
-            }
-        };
-        httpImages.update(context);
 
         shared.registerOnSharedPreferenceChangeListener(this);
     }
@@ -469,7 +470,6 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         if (cookieStore == null) {
             cookieStore = new BasicCookieStore();
             http.setCookieStore(cookieStore);
-            httpImages.setCookieStore(cookieStore);
         }
         cookieStore.clear();
 
@@ -1761,7 +1761,6 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         http.update(context);
-        httpImages.update(context);
     }
 
     public void hideKeyboard() {
@@ -1778,7 +1777,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     public void delete() {
     }
 
-    void detailsLoad(final SearchItem item) {
+    void detailsLoad(HttpClient httpImages, final SearchItem item) {
         final String url = item.details;
         if (url == null || url.isEmpty()) {
             return;
@@ -1796,10 +1795,10 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         HttpClient.DownloadResponse html = httpImages.getResponse(null, url);
         html.download();
 
-        detailsLoad(item, details, url, html);
+        detailsLoad(httpImages, item, details, url, html);
     }
 
-    void detailsLoad(final SearchItem item, final Map<String, String> details, final String url, final HttpClient.DownloadResponse html) {
+    void detailsLoad(final HttpClient httpImages, final SearchItem item, final Map<String, String> details, final String url, final HttpClient.DownloadResponse html) {
         final String js = item.search.get("details_js");
         final String js_post = item.search.get("details_js_post");
 

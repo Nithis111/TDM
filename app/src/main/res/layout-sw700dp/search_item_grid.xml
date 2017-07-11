@@ -39,6 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
+            android:gravity="center"
             android:paddingLeft="5dp"
             android:text="demo fragmentdemo fragmentdemo fragment.avi"
             android:textColor="?attr/titleColor" />
@@ -75,7 +76,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:paddingLeft="5dp"
-            android:text="01-05-2015" />
+            android:text="01-05-2015"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/search_item_size"
@@ -83,7 +85,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:paddingLeft="5dp"
-            android:text="Size: 100 MiB" />
+            android:text="Size: 100 MiB"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/search_item_seed"
@@ -91,7 +94,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:paddingLeft="5dp"
-            android:text="Seed: 1300" />
+            android:text="Seed: 1300"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/search_item_leech"
@@ -99,7 +103,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:paddingLeft="5dp"
-            android:text="Leech: 222" />
+            android:text="Leech: 222"
+            android:textSize="12sp" />
     </org.apmem.tools.layouts.FlowLayout>
 
 </LinearLayout>
