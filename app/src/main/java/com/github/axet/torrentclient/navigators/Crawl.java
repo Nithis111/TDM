@@ -750,6 +750,10 @@ public class Crawl extends Search {
         }
 
         String next = matcherUrl(url, html, state.s.get("next"), null);
+
+        if (next != null && url.equals(next))
+            next = null;
+
         if (next == null) {
             state.end++;
             state.endPage = state.page;
