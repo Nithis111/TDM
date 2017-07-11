@@ -17,7 +17,7 @@
     "list": ".catalog-result",
     "title": ".result-data h3",
     "details": ".result-data h3 a:regex(.*href=\"([^\"]*)\".*)",
-    "details_js": "var ee = document.querySelectorAll('.page-number')\nfor(var i = 0; i < ee.length; i++) {\n  var e = ee[i];\n  e.href = location.href.replace(/(search_page=)(\\d+)/, '$1' + e.getAttribute('data-page_number'))\n}",
+    "details_js": "function load() {\n  var ee = document.querySelectorAll('.page-number')\n  for(var i = 0; i < ee.length; i++) {\n    var e = ee[i];\n    e.href = location.href.replace(/(search_page=)(\\d+)/, '$1' + e.getAttribute('data-page_number'))\n  }\n  result();\n}\n\nvar page = $('.page-number-nav')\nif (page.is(':empty')) {\n  page.bind(\"DOMSubtreeModified\", function() {\n    load();\n  });\n} else {\n  load();\n}\n\nbreak main;",
     "image": ".book-cover img:regex([^>]*src=\"([^\"]*)\".*)",
     "next": ".page-number.active+.page-number:regex(.*href=\"([^\"]*)\".*)"
   },
