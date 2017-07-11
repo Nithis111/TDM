@@ -150,6 +150,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         for (String s : ss) {
             str = str.replaceAll(s, " ");
         }
+        str = str.replaceAll("  ", " ");
+        str = str.replaceAll("\n\n", "\n");
         return str.trim();
     }
 

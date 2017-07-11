@@ -34,6 +34,7 @@
     "Recents": "substr(date,7,4)||substr(date,4,2)||substr(date,1,2)||substr(date,12,5) desc"
   },
   "details": {
+	"date":".product-details > dd:nth-child(6)",
     "torrent": "a[href$=torrent].book-download-btn:regex(.*href=\"([^\"]*)\".*)"
   },
   "search": {
