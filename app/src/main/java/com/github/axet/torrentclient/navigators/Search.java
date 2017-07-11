@@ -403,7 +403,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             item = items[0];
 
             try {
-                detailsLoad(item);
+                detailsLoad(httpImages, item);
             } catch (RuntimeException e) {
                 post(e);
                 return null;
@@ -1777,7 +1777,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     public void delete() {
     }
 
-    void detailsLoad(HttpClient httpImages, final SearchItem item) {
+    void detailsLoad(HttpProxyClient httpImages, final SearchItem item) {
         final String url = item.details;
         if (url == null || url.isEmpty()) {
             return;
@@ -1798,7 +1798,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         detailsLoad(httpImages, item, details, url, html);
     }
 
-    void detailsLoad(final HttpClient httpImages, final SearchItem item, final Map<String, String> details, final String url, final HttpClient.DownloadResponse html) {
+    void detailsLoad(final HttpProxyClient httpImages, final SearchItem item, final Map<String, String> details, final String url, final HttpClient.DownloadResponse html) {
         final String js = item.search.get("details_js");
         final String js_post = item.search.get("details_js_post");
 
