@@ -10,8 +10,8 @@ android {
         applicationId "com.github.axet.torrentclient"
         minSdkVersion 15
         targetSdkVersion 23 // 24+ unable to share 'resource/folder'
-        versionCode 435
-        versionName "3.2.19"
+        versionCode 436
+        versionName "3.2.20"
     }
     signingConfigs {
         release {
