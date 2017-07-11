@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "name": "librivox.org",
   "home": {
     "get": "http://librivox.org"
@@ -17,7 +17,7 @@
     "list": ".catalog-result",
     "title": ".result-data",
     "details": ".result-data h3 a:regex(.*href=\"([^\"]*)\".*)",
-    "details_js": "function load() {\n  var ee = document.querySelectorAll('.page-number')\n  for(var i = 0; i < ee.length; i++) {\n    var e = ee[i];\n    e.href = location.href.replace(/(search_page=)(\\d+)/, '$1' + e.getAttribute('data-page_number'))\n  }\n  result();\n}\n\nvar page = $('.page-number-nav')\nif (page.is(':empty')) {\n  page.bind(\"DOMSubtreeModified\", function() {\n    load();\n  });\n} else {\n  load();\n}\n\nbreak main;",
+    "details_js": "$(document).ajaxComplete(function() {\n  var ee = document.querySelectorAll('.page-number')\n  for(var i = 0; i < ee.length; i++) {\n    var e = ee[i];\n    e.href = location.href.replace(/(search_page=)(\\d+)/, '$1' + e.getAttribute('data-page_number'))\n  }\n  result();\n});\nbreak main;",
     "image": ".book-cover img:regex([^>]*src=\"([^\"]*)\".*)",
     "next": ".page-number.active+.page-number:regex(.*href=\"([^\"]*)\".*)"
   },
