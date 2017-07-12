@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "name": "librivox.org",
   "home": {
     "get": "http://librivox.org"
@@ -40,7 +40,7 @@
   "search": {
     "get": "date desc",
     "grid": "crawl",
-	"torrent_filter": "*64kb.mp3",
+    "torrent_filter": "*.ogg",
     "update": "details"
   }
 }
