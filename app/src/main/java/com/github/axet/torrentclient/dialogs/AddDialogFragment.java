@@ -111,17 +111,16 @@ public class AddDialogFragment extends DialogFragment implements MainActivity.To
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         storage = getApp().getStorage();
 
+        result.t = getArguments().getLong("torrent");
+        result.hash = getArguments().getString("hash");
+        result.path = Uri.parse(getArguments().getString("path"));
+
         AlertDialog.Builder b = new AlertDialog.Builder(getActivity())
                 .setPositiveButton(android.R.string.ok,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                long t = getArguments().getLong("torrent");
-                                String path = getArguments().getString("path");
                                 getArguments().putLong("torrent", -1);
-                                result.t = t;
-                                result.path = Uri.parse(path);
                                 result.ok = true;
-                                result.hash = getArguments().getString("hash");
                                 dialog.dismiss();
                             }
                         }
@@ -129,7 +128,6 @@ public class AddDialogFragment extends DialogFragment implements MainActivity.To
                 .setNegativeButton(android.R.string.cancel,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                result.hash = getArguments().getString("hash");
                                 dialog.dismiss();
                             }
                         }
@@ -387,6 +385,9 @@ public class AddDialogFragment extends DialogFragment implements MainActivity.To
             t = tt.t;
             getArguments().putString("hash", tt.hash);
             getArguments().putLong("torrent", t);
+            result.hash = tt.hash;
+            result.t = t;
+            result.path = u;
         } else {
             String m = Libtorrent.torrentMagnet(t);
             storage.cancelTorrent(hash);
@@ -394,6 +395,9 @@ public class AddDialogFragment extends DialogFragment implements MainActivity.To
             t = tt.t;
             getArguments().putString("hash", tt.hash);
             getArguments().putLong("torrent", t);
+            result.hash = tt.hash;
+            result.t = t;
+            result.path = u;
         }
 
         update();
