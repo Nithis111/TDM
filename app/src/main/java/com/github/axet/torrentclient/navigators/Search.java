@@ -1237,13 +1237,9 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                                             return;
                                         String filter = item.search.get("torrent_filter");
                                         if (filter != null) {
-                                            FileFilter fileFilter = new WildcardFileFilter(filter);
-                                            long l = Libtorrent.torrentFilesCount(tt.t);
-                                            for (int i = 0; i < l; i++) {
-                                                File f = Libtorrent.torrentFiles(tt.t, i);
-                                                boolean b = fileFilter.accept(new java.io.File(f.getPath()));
-                                                Libtorrent.torrentFilesCheck(tt.t, i, b);
-                                            }
+                                            Libtorrent.torrentFilesCount(tt.t); // create files list
+                                            Libtorrent.torrentFilesCheckAll(tt.t, false);
+                                            Libtorrent.torrentFilesCheckFilter(tt.t, filter, true);
                                         }
                                     }
                                     requestCancel();  // destory looper thread
