@@ -40,7 +40,7 @@
   "search": {
     "get": "date desc",
     "grid": "crawl",
-	"torrent_filter": "*.ogg",
+    "torrent_filter": "*.ogg",
     "update": "details"
   }
 }
