@@ -53,6 +53,8 @@
                 android:id="@+id/notification_play"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingLeft="5dp"
                 android:paddingRight="5dp"
                 android:text="00:16/00:30"
                 android:textColor="?android:attr/textColorHint"
@@ -66,6 +68,5 @@
                 android:src="@drawable/ic_pause_24dp"
                 android:tint="?android:attr/colorForeground" />
         </LinearLayout>
-
     </LinearLayout>
 </FrameLayout>

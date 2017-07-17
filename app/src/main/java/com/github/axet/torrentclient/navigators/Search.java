@@ -1237,7 +1237,6 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                                             return;
                                         String filter = item.search.get("torrent_filter");
                                         if (filter != null) {
-                                            Libtorrent.torrentFilesCount(tt.t); // create files list
                                             Libtorrent.torrentFilesCheckAll(tt.t, false);
                                             Libtorrent.torrentFilesCheckFilter(tt.t, filter, true);
                                         }
