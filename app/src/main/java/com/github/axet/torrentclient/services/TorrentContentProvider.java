@@ -238,7 +238,6 @@ public class TorrentContentProvider extends ContentProvider {
                         f.file.write(os);
                     } finally {
                         try {
-                            os.flush();
                             os.close();
                         } catch (IOException e) {
                             Log.d(TAG, "write close error", e);
