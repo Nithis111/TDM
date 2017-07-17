@@ -4,18 +4,13 @@ import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
-import android.content.pm.ResolveInfo;
-import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -24,20 +19,12 @@ import com.github.axet.androidlibrary.services.FileProvider;
 import com.github.axet.torrentclient.app.MainApplication;
 import com.github.axet.torrentclient.app.TorrentPlayer;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.FileFileFilter;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 // <application>
 //   <provider
@@ -214,14 +201,14 @@ public class TorrentContentProvider extends ContentProvider {
                             ParcelFileDescriptor w = ff[1];
                             OutputStream os = new ParcelFileDescriptor.AutoCloseOutputStream(w);
                             try {
-                                f.file.write(os);
+                                f.file.copy(os);
                             } catch (RuntimeException e) {
                                 Log.d(TAG, "Error reading archive", e);
                             } finally {
                                 try {
                                     os.close();
                                 } catch (IOException e) {
-                                    Log.d(TAG, "write close error", e);
+                                    Log.d(TAG, "copy close error", e);
                                 }
                             }
                         }
@@ -235,12 +222,12 @@ public class TorrentContentProvider extends ContentProvider {
                     tmp = File.createTempFile(FILE_PREFIX, FILE_SUFFIX, tmp);
                     FileOutputStream os = new FileOutputStream(tmp);
                     try {
-                        f.file.write(os);
+                        f.file.copy(os);
                     } finally {
                         try {
                             os.close();
                         } catch (IOException e) {
-                            Log.d(TAG, "write close error", e);
+                            Log.d(TAG, "copy close error", e);
                         }
                     }
                     return ParcelFileDescriptor.open(tmp, fileMode);

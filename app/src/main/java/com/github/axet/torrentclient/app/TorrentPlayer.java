@@ -111,6 +111,8 @@ public class TorrentPlayer {
     };
 
     public Decoder RAR = new Decoder() {
+        ArrayList<Archive> aa = new ArrayList<>();
+
         @Override
         public boolean supported(TorFile f) {
             Uri u = storage.child(torrent.path, f.file.getPath());
@@ -185,7 +187,7 @@ public class TorrentPlayer {
                         }
 
                         @Override
-                        public void write(OutputStream os) {
+                        public void copy(OutputStream os) {
                             try {
                                 archive.extractFile(header, os);
                             } catch (RarException e) {
@@ -205,9 +207,23 @@ public class TorrentPlayer {
                 throw new RuntimeException(e);
             }
         }
+
+        @Override
+        public void clear() {
+            try {
+                for (Archive a : aa) {
+                    a.close();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            aa.clear();
+        }
     };
 
     public Decoder ZIP = new Decoder() {
+        ArrayList<ZipFile> aa = new ArrayList<>();
+
         @Override
         public boolean supported(TorFile f) {
             Uri u = storage.child(torrent.path, f.file.getPath());
@@ -241,6 +257,7 @@ public class TorrentPlayer {
                 } else {
                     throw new RuntimeException("unknown uri");
                 }
+                aa.add(zip);
                 List list = zip.getFileHeaders();
                 for (Object o : list) {
                     final net.lingala.zip4j.model.FileHeader zipEntry = (net.lingala.zip4j.model.FileHeader) o;
@@ -262,7 +279,7 @@ public class TorrentPlayer {
                             }
                         }
 
-                        public void write(OutputStream os) {
+                        public void copy(OutputStream os) {
                             try {
                                 InputStream is = zip.getInputStream(zipEntry);
                                 IOUtils.copy(is, os);
@@ -282,6 +299,11 @@ public class TorrentPlayer {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        @Override
+        public void clear() {
+            aa.clear();
         }
     };
 
@@ -419,6 +441,8 @@ public class TorrentPlayer {
         boolean supported(TorFile f);
 
         ArrayList<ArchiveFile> list(TorFile f);
+
+        void clear();
     }
 
     public interface ArchiveFile {
@@ -426,7 +450,7 @@ public class TorrentPlayer {
 
         InputStream open();
 
-        void write(OutputStream os);
+        void copy(OutputStream os);
 
         long getLength();
     }
@@ -538,6 +562,10 @@ public class TorrentPlayer {
                 ff.add(new PlayerFile(f).index((int) i, (int) l));
         }
         Collections.sort(ff, new SortPlayerFiles());
+
+        for (Decoder d : DECODERS) {
+            d.clear();
+        }
 
         for (PlayerFile f : ff) {
             files.add(f);
