@@ -33,6 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -206,17 +207,18 @@ public class TorrentContentProvider extends ContentProvider {
             if (f.file != null) {
                 if (mode.equals("r")) { // r
                     final ParcelFileDescriptor[] ff = ParcelFileDescriptor.createPipe();
+                    final ParcelFileDescriptor r = ff[0];
                     Thread thread = new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            FileOutputStream os = new FileOutputStream(ff[1].getFileDescriptor());
+                            ParcelFileDescriptor w = ff[1];
+                            OutputStream os = new ParcelFileDescriptor.AutoCloseOutputStream(w);
                             try {
                                 f.file.write(os);
                             } catch (RuntimeException e) {
                                 Log.d(TAG, "Error reading archive", e);
                             } finally {
                                 try {
-                                    os.flush();
                                     os.close();
                                 } catch (IOException e) {
                                     Log.d(TAG, "write close error", e);
@@ -225,7 +227,7 @@ public class TorrentContentProvider extends ContentProvider {
                         }
                     });
                     thread.start();
-                    return ff[0];
+                    return r;
                 } else { // rw - need File
                     File tmp = getContext().getExternalCacheDir();
                     if (tmp == null)
