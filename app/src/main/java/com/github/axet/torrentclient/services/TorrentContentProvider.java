@@ -200,7 +200,7 @@ public class TorrentContentProvider extends ContentProvider {
 
         final int fileMode = FileProvider.modeToMode(mode);
 
-        deleteTmp();
+        deleteTmp(); // will not delete opened files
 
         try {
             if (f.file != null) {
@@ -211,9 +211,16 @@ public class TorrentContentProvider extends ContentProvider {
                         public void run() {
                             FileOutputStream os = new FileOutputStream(ff[1].getFileDescriptor());
                             try {
-                                f.file.write(os); // write flush and close
+                                f.file.write(os);
                             } catch (RuntimeException e) {
                                 Log.d(TAG, "Error reading archive", e);
+                            } finally {
+                                try {
+                                    os.flush();
+                                    os.close();
+                                } catch (IOException e) {
+                                    Log.d(TAG, "write close error", e);
+                                }
                             }
                         }
                     });
@@ -224,7 +231,17 @@ public class TorrentContentProvider extends ContentProvider {
                     if (tmp == null)
                         tmp = getContext().getCacheDir();
                     tmp = File.createTempFile(FILE_PREFIX, FILE_SUFFIX, tmp);
-                    f.file.write(new FileOutputStream(tmp));
+                    FileOutputStream os = new FileOutputStream(tmp);
+                    try {
+                        f.file.write(os);
+                    } finally {
+                        try {
+                            os.flush();
+                            os.close();
+                        } catch (IOException e) {
+                            Log.d(TAG, "write close error", e);
+                        }
+                    }
                     return ParcelFileDescriptor.open(tmp, fileMode);
                 }
             } else {

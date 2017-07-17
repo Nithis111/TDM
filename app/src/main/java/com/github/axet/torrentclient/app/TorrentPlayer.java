@@ -188,9 +188,7 @@ public class TorrentPlayer {
                         public void write(OutputStream os) {
                             try {
                                 archive.extractFile(header, os);
-                                os.flush();
-                                os.close();
-                            } catch (IOException | RarException e) {
+                            } catch (RarException e) {
                                 throw new RuntimeException(e);
                             }
                         }
@@ -268,8 +266,6 @@ public class TorrentPlayer {
                             try {
                                 InputStream is = zip.getInputStream(zipEntry);
                                 IOUtils.copy(is, os);
-                                os.flush();
-                                os.close();
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
