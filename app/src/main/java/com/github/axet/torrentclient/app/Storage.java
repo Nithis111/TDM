@@ -648,9 +648,8 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
     }
 
     public void close() {
-        Log.d(TAG, "close()");
-
         save();
+        Log.d(TAG, "close()");
 
         torrents.clear();
         hashs.clear();

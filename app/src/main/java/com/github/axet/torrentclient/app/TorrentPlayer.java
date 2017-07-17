@@ -669,7 +669,7 @@ public class TorrentPlayer {
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
                 if (playbackState == ExoPlayer.STATE_READY) {
-                    getDuration();
+                    ; // getDuration();
                 }
                 if (playbackState == ExoPlayer.STATE_ENDED)
                     next(i + 1);
