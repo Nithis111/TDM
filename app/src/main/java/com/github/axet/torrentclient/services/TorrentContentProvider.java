@@ -211,16 +211,9 @@ public class TorrentContentProvider extends ContentProvider {
                         public void run() {
                             FileOutputStream os = new FileOutputStream(ff[1].getFileDescriptor());
                             try {
-                                f.file.write(os);
+                                f.file.write(os); // write flush and close
                             } catch (RuntimeException e) {
                                 Log.d(TAG, "Error reading archive", e);
-                            } finally {
-                                try {
-                                    os.flush();
-                                    os.close();
-                                } catch (IOException e) {
-                                    Log.d(TAG, "Error closing reading archive", e);
-                                }
                             }
                         }
                     });
