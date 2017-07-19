@@ -21,7 +21,10 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.media.session.MediaButtonReceiver;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -51,7 +54,7 @@ public class TorrentService extends Service {
 
     TorrentReceiver receiver;
     OptimizationPreferenceCompat.ServiceReceiver optimization;
-    MediaSession ms;
+    MediaSessionCompat msc;
     PendingIntent pause;
 
     public class TorrentReceiver extends BroadcastReceiver {
@@ -59,9 +62,6 @@ public class TorrentService extends Service {
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(UPDATE_NOTIFY)) {
                 showNotificationAlarm(true, intent);
-            }
-            if (intent.getAction().equals(Intent.ACTION_MEDIA_BUTTON)) {
-                pause();
             }
             if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
                 // showRecordingActivity();
@@ -146,7 +146,6 @@ public class TorrentService extends Service {
         filter.addAction(UPDATE_NOTIFY);
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction(Intent.ACTION_MEDIA_BUTTON);
         registerReceiver(receiver, filter);
 
         if (!isRunning()) {
@@ -164,6 +163,8 @@ public class TorrentService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand");
+
+        MediaButtonReceiver.handleIntent(msc, intent);
 
         if (!isRunning()) {
             stopSelf();
@@ -299,47 +300,62 @@ public class TorrentService extends Service {
     }
 
     void headset(boolean b, boolean playing) {
-        AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
-        PendingIntent pause = PendingIntent.getBroadcast(this, 1, new Intent(TorrentPlayer.PLAYER_PAUSE), PendingIntent.FLAG_UPDATE_CURRENT);
-        ComponentName name = new ComponentName(this, TorrentReceiver.class);
         if (b) {
             headset(false, playing);
-            if (Build.VERSION.SDK_INT >= 21) {
-                ms = new MediaSession(getApplicationContext(), getString(R.string.app_name));
-                ms.setMediaButtonReceiver(pause);
-                ms.setCallback(new MediaSession.Callback() {
-                    @Override
-                    public void onPlay() {
-                        pause();
-                    }
+            msc = new MediaSessionCompat(getApplicationContext(), TAG);
+            Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+            mediaButtonIntent.setClass(this, MediaButtonReceiver.class);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, mediaButtonIntent, 0);
+            msc.setMediaButtonReceiver(pendingIntent);
+            final MainApplication app = (MainApplication) getApplicationContext();
+            msc.setCallback(new MediaSessionCompat.Callback() {
+                @Override
+                public void onPlay() {
+                    pause();
+                }
 
-                    @Override
-                    public void onPause() {
-                        pause();
-                    }
+                @Override
+                public void onPause() {
+                    pause();
+                }
 
-                    @Override
-                    public void onStop() {
-                        final MainApplication app = (MainApplication) getApplicationContext();
-                        app.playerStop();
-                    }
-                });
-                PlaybackState state = new PlaybackState.Builder()
-                        .setActions(PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_STOP)
-                        .setState(playing ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED, 0, 0, 0)
-                        .build();
-                ms.setPlaybackState(state);
-                ms.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
-                ms.setActive(true);
-            } else {
-                am.registerMediaButtonEventReceiver(name);
-            }
+                @Override
+                public void onStop() {
+                    app.playerStop();
+                }
+
+                @Override
+                public void onSkipToNext() {
+                    if (app.player == null)
+                        return;
+                    int i = app.player.getPlaying() + 1;
+                    if (i >= app.player.getSize())
+                        i = 0;
+                    app.player.play(i);
+                }
+
+                @Override
+                public void onSkipToPrevious() {
+                    if (app.player == null)
+                        return;
+                    int i = app.player.getPlaying() - 1;
+                    if (i < 0)
+                        i = app.player.getSize() - 1;
+                    app.player.play(i);
+                }
+            });
+            PlaybackStateCompat state = new PlaybackStateCompat.Builder()
+                    .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE |
+                            PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+                    .setState(playing ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, 0, 1)
+                    .build();
+            msc.setPlaybackState(state);
+            msc.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+            msc.setActive(true);
         } else {
-            if (Build.VERSION.SDK_INT >= 21) {
-                if (ms != null)
-                    ms.setActive(false);
-            } else {
-                am.unregisterMediaButtonEventReceiver(name);
+            if (msc != null) {
+                msc.release();
+                msc = null;
             }
         }
     }
