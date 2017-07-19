@@ -5,19 +5,26 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.media.RingtoneManager;
+import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -44,12 +51,16 @@ public class TorrentService extends Service {
 
     TorrentReceiver receiver;
     OptimizationPreferenceCompat.ServiceReceiver optimization;
+    MediaSession ms;
 
     public class TorrentReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(UPDATE_NOTIFY)) {
                 showNotificationAlarm(true, intent);
+            }
+            if (intent.getAction().equals(Intent.ACTION_MEDIA_BUTTON)) {
+                pause();
             }
             if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
                 // showRecordingActivity();
@@ -65,8 +76,7 @@ public class TorrentService extends Service {
         SharedPreferences.Editor edit = shared.edit();
         edit.putBoolean(MainApplication.PREFERENCE_RUN, true);
         edit.commit();
-        Intent i = new Intent(context, TorrentService.class).setAction(UPDATE_NOTIFY)
-                .putExtra(TITLE, title);
+        Intent i = new Intent(context, TorrentService.class).setAction(UPDATE_NOTIFY).putExtra(TITLE, title);
         context.startService(i);
     }
 
@@ -135,6 +145,7 @@ public class TorrentService extends Service {
         filter.addAction(UPDATE_NOTIFY);
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_MEDIA_BUTTON);
         registerReceiver(receiver, filter);
 
         if (!isRunning()) {
@@ -213,6 +224,8 @@ public class TorrentService extends Service {
             unregisterReceiver(receiver);
             receiver = null;
         }
+
+        headset(false);
     }
 
     Notification buildNotification(String title, String player, boolean playing) {
@@ -241,11 +254,13 @@ public class TorrentService extends Service {
         if (player == null || player.isEmpty()) {
             view.setViewVisibility(R.id.notification_play, View.GONE);
             view.setViewVisibility(R.id.notification_playing, View.GONE);
+            headset(false);
         } else {
             view.setViewVisibility(R.id.notification_play, View.VISIBLE);
             view.setViewVisibility(R.id.notification_playing, View.VISIBLE);
             view.setTextViewText(R.id.notification_play, player);
             view.setImageViewResource(R.id.notification_playing, playing ? R.drawable.ic_pause_24dp : R.drawable.ic_play_arrow_black_24dp);
+            headset(true);
         }
         view.setOnClickPendingIntent(R.id.notification_playing, pause);
 
@@ -280,5 +295,56 @@ public class TorrentService extends Service {
         super.onTaskRemoved(rootIntent);
         Log.d(TAG, "onTaskRemoved");
         optimization.onTaskRemoved(rootIntent);
+    }
+
+    void headset(boolean b) {
+        AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
+        PendingIntent pause = PendingIntent.getBroadcast(this, 1, new Intent(TorrentPlayer.PLAYER_PAUSE), PendingIntent.FLAG_UPDATE_CURRENT);
+        ComponentName name = new ComponentName(this, TorrentReceiver.class);
+        if (b) {
+            headset(false);
+            if (Build.VERSION.SDK_INT >= 21) {
+                ms = new MediaSession(getApplicationContext(), getString(R.string.app_name));
+                ms.setMediaButtonReceiver(pause);
+                ms.setCallback(new MediaSession.Callback() {
+                    @Override
+                    public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
+                        String a = mediaButtonIntent.getAction();
+                        if (Intent.ACTION_MEDIA_BUTTON.equals(a)) {
+                            KeyEvent event = mediaButtonIntent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+                            if (event != null) {
+                                int action = event.getAction();
+                                if (action == KeyEvent.ACTION_DOWN) {
+                                    pause();
+                                }
+                            }
+                            return true;
+                        }
+                        return super.onMediaButtonEvent(mediaButtonIntent);
+                    }
+                });
+                PlaybackState state = new PlaybackState.Builder()
+                        .setActions(PlaybackState.ACTION_PLAY_PAUSE)
+                        .setState(PlaybackState.STATE_PLAYING, 0, 0, 0)
+                        .build();
+                ms.setPlaybackState(state);
+                ms.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+                ms.setActive(true);
+            } else {
+                am.registerMediaButtonEventReceiver(name);
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= 21) {
+                if (ms != null)
+                    ms.setActive(false);
+            } else {
+                am.unregisterMediaButtonEventReceiver(name);
+            }
+        }
+    }
+
+    void pause() {
+        Intent pause = new Intent(TorrentPlayer.PLAYER_PAUSE);
+        sendBroadcast(pause);
     }
 }
