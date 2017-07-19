@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.github.axet.androidlibrary.widgets.OptimizationPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.ThemeUtils;
 import com.github.axet.torrentclient.R;
+import com.github.axet.torrentclient.activities.MainActivity;
 import com.github.axet.torrentclient.services.TorrentService;
 
 import java.io.File;
@@ -148,6 +149,15 @@ public class MainApplication extends com.github.axet.androidlibrary.app.MainAppl
                     player.notifyProgress();
                 }
             }
+        }
+    }
+
+    public void playerStop() {
+        if (player != null) {
+            player.notifyStop();
+            player.close();
+            player = null;
+            TorrentPlayer.save(this, player);
         }
     }
 

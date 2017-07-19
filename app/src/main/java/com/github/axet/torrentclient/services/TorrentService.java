@@ -52,6 +52,7 @@ public class TorrentService extends Service {
     TorrentReceiver receiver;
     OptimizationPreferenceCompat.ServiceReceiver optimization;
     MediaSession ms;
+    PendingIntent pause;
 
     public class TorrentReceiver extends BroadcastReceiver {
         @Override
@@ -225,7 +226,7 @@ public class TorrentService extends Service {
             receiver = null;
         }
 
-        headset(false);
+        headset(false, false);
     }
 
     Notification buildNotification(String title, String player, boolean playing) {
@@ -237,7 +238,7 @@ public class TorrentService extends Service {
 //                new Intent(this, TorrentService.class).setAction(PAUSE_BUTTON),
 //                PendingIntent.FLAG_UPDATE_CURRENT);
 
-        PendingIntent pause = PendingIntent.getBroadcast(this, 0,
+        pause = PendingIntent.getBroadcast(this, 0,
                 new Intent(TorrentPlayer.PLAYER_PAUSE),
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -254,13 +255,13 @@ public class TorrentService extends Service {
         if (player == null || player.isEmpty()) {
             view.setViewVisibility(R.id.notification_play, View.GONE);
             view.setViewVisibility(R.id.notification_playing, View.GONE);
-            headset(false);
+            headset(false, playing);
         } else {
             view.setViewVisibility(R.id.notification_play, View.VISIBLE);
             view.setViewVisibility(R.id.notification_playing, View.VISIBLE);
             view.setTextViewText(R.id.notification_play, player);
             view.setImageViewResource(R.id.notification_playing, playing ? R.drawable.ic_pause_24dp : R.drawable.ic_play_arrow_black_24dp);
-            headset(true);
+            headset(true, playing);
         }
         view.setOnClickPendingIntent(R.id.notification_playing, pause);
 
@@ -297,35 +298,35 @@ public class TorrentService extends Service {
         optimization.onTaskRemoved(rootIntent);
     }
 
-    void headset(boolean b) {
+    void headset(boolean b, boolean playing) {
         AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
         PendingIntent pause = PendingIntent.getBroadcast(this, 1, new Intent(TorrentPlayer.PLAYER_PAUSE), PendingIntent.FLAG_UPDATE_CURRENT);
         ComponentName name = new ComponentName(this, TorrentReceiver.class);
         if (b) {
-            headset(false);
+            headset(false, playing);
             if (Build.VERSION.SDK_INT >= 21) {
                 ms = new MediaSession(getApplicationContext(), getString(R.string.app_name));
                 ms.setMediaButtonReceiver(pause);
                 ms.setCallback(new MediaSession.Callback() {
                     @Override
-                    public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
-                        String a = mediaButtonIntent.getAction();
-                        if (Intent.ACTION_MEDIA_BUTTON.equals(a)) {
-                            KeyEvent event = mediaButtonIntent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
-                            if (event != null) {
-                                int action = event.getAction();
-                                if (action == KeyEvent.ACTION_DOWN) {
-                                    pause();
-                                }
-                            }
-                            return true;
-                        }
-                        return super.onMediaButtonEvent(mediaButtonIntent);
+                    public void onPlay() {
+                        pause();
+                    }
+
+                    @Override
+                    public void onPause() {
+                        pause();
+                    }
+
+                    @Override
+                    public void onStop() {
+                        final MainApplication app = (MainApplication) getApplicationContext();
+                        app.playerStop();
                     }
                 });
                 PlaybackState state = new PlaybackState.Builder()
-                        .setActions(PlaybackState.ACTION_PLAY_PAUSE)
-                        .setState(PlaybackState.STATE_PLAYING, 0, 0, 0)
+                        .setActions(PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_STOP)
+                        .setState(playing ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED, 0, 0, 0)
                         .build();
                 ms.setPlaybackState(state);
                 ms.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
@@ -344,7 +345,10 @@ public class TorrentService extends Service {
     }
 
     void pause() {
-        Intent pause = new Intent(TorrentPlayer.PLAYER_PAUSE);
-        sendBroadcast(pause);
+        try {
+            pause.send();
+        } catch (PendingIntent.CanceledException e) {
+            Log.d(TAG, "canceled expcetion", e);
+        }
     }
 }

@@ -302,13 +302,15 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         screenfilter.addAction(Intent.ACTION_SCREEN_OFF);
         registerReceiver(screenreceiver, screenfilter);
 
+        final MainApplication app = getApp();
+
         delayedIntent = getIntent();
 
         // UI thread
         delayedInit = new Runnable() {
             @Override
             public void run() {
-                storage = getApp().getStorage();
+                storage = app.getStorage();
 
                 progress.setVisibility(View.GONE);
                 list.setVisibility(View.VISIBLE);
@@ -344,7 +346,6 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
 
                 drawer.updateManager();
 
-                MainApplication app = getApp();
                 if (app.player != null) {
                     app.player.notifyProgress(playerReceiver);
                 }
@@ -358,7 +359,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
 
         updateHeader(new Storage(this));
 
-        getApp().createThread(new Runnable() {
+        app.createThread(new Runnable() {
             @Override
             public void run() {
                 if (isFinishing())
@@ -393,17 +394,14 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         fab_play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getApp().player.pause();
+                app.player.pause();
             }
         });
         fab_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (getApp().player != null) {
-                    getApp().player.notifyStop();
-                    getApp().player.close();
-                    getApp().player = null;
-                    TorrentPlayer.save(MainActivity.this, getApp().player);
+                if (app.player != null) {
+                    app.playerStop();
                 }
             }
         });
@@ -544,7 +542,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
 
         // do not close storage when mainactivity closes. it may be restarted due to theme change.
         // only close it on shutdown()
-        // getApp().close();
+        // app.close();
     }
 
     public void shutdown() {
