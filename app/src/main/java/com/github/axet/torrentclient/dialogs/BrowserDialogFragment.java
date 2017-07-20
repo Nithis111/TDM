@@ -356,6 +356,7 @@ public class BrowserDialogFragment extends DialogFragment implements MainActivit
             @Override
             public void onDownloadStart(final String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
                 Log.d(TAG, "onDownloadStart " + url);
+                final MainActivity main = getMainActivity();
                 thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -364,7 +365,9 @@ public class BrowserDialogFragment extends DialogFragment implements MainActivit
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    getMainActivity().addTorrentFromBytes(buf);
+                                    if (main.isFinishing())
+                                        return;
+                                    main.addTorrentFromBytes(buf);
                                 }
                             });
                         } catch (RuntimeException e) {
