@@ -400,9 +400,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         fab_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (app.player != null) {
-                    app.playerStop();
-                }
+                app.playerStop();
             }
         });
         fab_panel.setVisibility(View.GONE);
