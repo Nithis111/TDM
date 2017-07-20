@@ -222,9 +222,7 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
             public void onClick(View v) {
                 if (app.player != null && app.player != player) {
                     boolean p = app.player.isPlaying();
-                    app.player.notifyStop();
-                    app.player.close();
-                    app.player = null;
+                    app.playerStop();
                     if (p) // if were playing show play button; else start playing current
                         return;
                 }

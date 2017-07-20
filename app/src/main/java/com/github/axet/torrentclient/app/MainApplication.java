@@ -58,7 +58,6 @@ public class MainApplication extends com.github.axet.androidlibrary.app.MainAppl
     final ArrayList<Runnable> initArray = new ArrayList<>();
     Thread initThread;
     Handler handler = new Handler();
-    TorrentPlayer.Receiver receiver;
 
     class SaveState extends BroadcastReceiver {
         @Override
@@ -124,18 +123,6 @@ public class MainApplication extends com.github.axet.androidlibrary.app.MainAppl
             filter.addAction(Intent.ACTION_PACKAGE_RESTARTED);
             registerReceiver(savestate, filter);
         }
-        if (receiver == null) {
-            receiver = new TorrentPlayer.Receiver(this) {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    super.onReceive(context, intent);
-                    String a = intent.getAction();
-                    if (a.equals(TorrentPlayer.PLAYER_STOP)) {
-                        player = null;
-                    }
-                }
-            };
-        }
         if (player == null) {
             final SharedPreferences shared = PreferenceManager.getDefaultSharedPreferences(this);
             String uri = shared.getString(MainApplication.PREFERENCE_PLAYER, "");
@@ -182,10 +169,6 @@ public class MainApplication extends com.github.axet.androidlibrary.app.MainAppl
         if (savestate != null) {
             unregisterReceiver(savestate);
             savestate = null;
-        }
-        if (receiver != null) {
-            receiver.close();
-            receiver = null;
         }
         if (player != null) {
             TorrentPlayer.save(this, player);

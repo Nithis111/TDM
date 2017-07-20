@@ -400,9 +400,8 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         fab_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (app.player != null) {
-                    app.playerStop();
-                }
+                app.playerStop();
+                playerStop();
             }
         });
         fab_panel.setVisibility(View.GONE);
@@ -437,10 +436,14 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
                     fab_play.setImageResource(R.drawable.ic_pause_24dp);
                 }
                 if (a.equals(TorrentPlayer.PLAYER_STOP)) {
-                    fab_panel.setVisibility(View.GONE);
+                    playerStop();
                 }
             }
         };
+    }
+
+    void playerStop() {
+        fab_panel.setVisibility(View.GONE);
     }
 
     @Override
