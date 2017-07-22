@@ -63,6 +63,9 @@ public class TorrentService extends Service {
             if (intent.getAction().equals(UPDATE_NOTIFY)) {
                 showNotificationAlarm(true, intent);
             }
+            if (intent.getAction().equals(Intent.ACTION_MEDIA_BUTTON)) {
+                pause();
+            }
             if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
                 // showRecordingActivity();
             }
@@ -144,6 +147,7 @@ public class TorrentService extends Service {
         receiver = new TorrentReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(UPDATE_NOTIFY);
+        filter.addAction(Intent.ACTION_MEDIA_BUTTON);
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         registerReceiver(receiver, filter);
