@@ -305,8 +305,8 @@ public class TorrentService extends Service {
 
     void headset(boolean b, boolean playing) {
         if (b) {
-            headset(false, playing);
-            msc = new MediaSessionCompat(this, TAG, new ComponentName(this, TorrentReceiver.class), null);
+            if (msc == null)
+                msc = new MediaSessionCompat(this, TAG, new ComponentName(this, TorrentReceiver.class), null);
             Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
             mediaButtonIntent.setClass(this, MediaButtonReceiver.class);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, mediaButtonIntent, 0);
