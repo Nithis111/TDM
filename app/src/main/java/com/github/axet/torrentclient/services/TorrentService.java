@@ -57,6 +57,7 @@ public class TorrentService extends Service {
     OptimizationPreferenceCompat.ServiceReceiver optimization;
     MediaSessionCompat msc;
     PendingIntent pause;
+    Handler handler = new Handler();
 
     public static void startService(Context context, String title) {
         final SharedPreferences shared = PreferenceManager.getDefaultSharedPreferences(context);
@@ -157,6 +158,13 @@ public class TorrentService extends Service {
             stopSelf();
             return;
         }
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                headset(false, false); // after boot, we need to reset mediabutton once, to make it work
+            }
+        }, AlarmManager.MIN1);
 
         startForeground(NOTIFICATION_TORRENT_ICON, buildNotification(getString(R.string.tap_restart), "", false));
     }
