@@ -339,7 +339,7 @@ public class TorrentService extends Service {
                 });
                 msc.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
                 msc.setActive(true);
-                // bug, when after device boot we need set playing state to 'playing' to make mediabutton work
+                // bug, when after device boot we have to set playing state to 'playing' to make mediabutton work
                 msc.setPlaybackState(buildState(true));
             }
             msc.setPlaybackState(buildState(playing));
