@@ -17,6 +17,7 @@ import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -56,24 +57,6 @@ public class TorrentService extends Service {
     OptimizationPreferenceCompat.ServiceReceiver optimization;
     MediaSessionCompat msc;
     PendingIntent pause;
-
-    public class TorrentReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(UPDATE_NOTIFY)) {
-                showNotificationAlarm(true, intent);
-            }
-            if (intent.getAction().equals(Intent.ACTION_MEDIA_BUTTON)) {
-                pause();
-            }
-            if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
-                // showRecordingActivity();
-            }
-            if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
-                // do nothing. do not annoy user. he will see alarm screen on next screen on event.
-            }
-        }
-    }
 
     public static void startService(Context context, String title) {
         final SharedPreferences shared = PreferenceManager.getDefaultSharedPreferences(context);
@@ -128,6 +111,24 @@ public class TorrentService extends Service {
         manager.notify(NOTIFICATION_DOWNLOAD_ICON + i, builder.build());
     }
 
+    public class TorrentReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(UPDATE_NOTIFY)) {
+                showNotificationAlarm(true, intent);
+            }
+            if (intent.getAction().equals(Intent.ACTION_MEDIA_BUTTON)) {
+                pause();
+            }
+            if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
+                // showRecordingActivity();
+            }
+            if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+                // do nothing. do not annoy user. he will see alarm screen on next screen on event.
+            }
+        }
+    }
+
     public TorrentService() {
     }
 
@@ -166,7 +167,7 @@ public class TorrentService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand");
+        Log.d(TAG, "onStartCommand " + intent);
 
         MediaButtonReceiver.handleIntent(msc, intent);
 
@@ -305,57 +306,58 @@ public class TorrentService extends Service {
 
     void headset(boolean b, boolean playing) {
         if (b) {
-            if (msc == null)
+            if (msc == null) {
                 msc = new MediaSessionCompat(this, TAG, new ComponentName(this, TorrentReceiver.class), null);
-            Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
-            mediaButtonIntent.setClass(this, MediaButtonReceiver.class);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, mediaButtonIntent, 0);
-            msc.setMediaButtonReceiver(pendingIntent);
-            final MainApplication app = (MainApplication) getApplicationContext();
-            msc.setCallback(new MediaSessionCompat.Callback() {
-                @Override
-                public void onPlay() {
-                    pause();
-                }
+                Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                mediaButtonIntent.setClass(this, MediaButtonReceiver.class);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, mediaButtonIntent, 0);
+                msc.setMediaButtonReceiver(pendingIntent);
+                final MainApplication app = (MainApplication) getApplicationContext();
+                msc.setCallback(new MediaSessionCompat.Callback() {
+                    @Override
+                    public void onPlay() {
+                        pause();
+                    }
 
-                @Override
-                public void onPause() {
-                    pause();
-                }
+                    @Override
+                    public void onPause() {
+                        pause();
+                    }
 
-                @Override
-                public void onStop() {
-                    app.playerStop();
-                }
+                    @Override
+                    public void onStop() {
+                        app.playerStop();
+                    }
 
-                @Override
-                public void onSkipToNext() {
-                    if (app.player == null)
-                        return;
-                    int i = app.player.getPlaying() + 1;
-                    if (i >= app.player.getSize())
-                        i = 0;
-                    app.player.play(i);
-                }
+                    @Override
+                    public void onSkipToNext() {
+                        if (app.player == null)
+                            return;
+                        int i = app.player.getPlaying() + 1;
+                        if (i >= app.player.getSize())
+                            i = 0;
+                        app.player.play(i);
+                    }
 
-                @Override
-                public void onSkipToPrevious() {
-                    if (app.player == null)
-                        return;
-                    int i = app.player.getPlaying() - 1;
-                    if (i < 0)
-                        i = app.player.getSize() - 1;
-                    app.player.play(i);
-                }
-            });
+                    @Override
+                    public void onSkipToPrevious() {
+                        if (app.player == null)
+                            return;
+                        int i = app.player.getPlaying() - 1;
+                        if (i < 0)
+                            i = app.player.getSize() - 1;
+                        app.player.play(i);
+                    }
+                });
+                msc.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+                msc.setActive(true);
+            }
             PlaybackStateCompat state = new PlaybackStateCompat.Builder()
                     .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE |
                             PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
                     .setState(playing ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, 0, 1)
                     .build();
             msc.setPlaybackState(state);
-            msc.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-            msc.setActive(true);
         } else {
             if (msc != null) {
                 msc.release();
