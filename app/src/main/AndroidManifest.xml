@@ -20,6 +20,7 @@
         android:theme="@style/AppThemeLight">
         <service
             android:name=".services.TorrentService"
+            android:exported="true"
             android:stopWithTask="false" />
 
         <provider
