@@ -117,16 +117,10 @@ public class TorrentService extends Service {
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(UPDATE_NOTIFY)) {
                 showNotificationAlarm(true, intent);
+                return;
             }
-            if (intent.getAction().equals(Intent.ACTION_MEDIA_BUTTON)) {
-                pause();
-            }
-            if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
-                // showRecordingActivity();
-            }
-            if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
-                // do nothing. do not annoy user. he will see alarm screen on next screen on event.
-            }
+            Log.d(TAG, "TorrentReceiver " + intent);
+            MediaButtonReceiver.handleIntent(msc, intent);
         }
     }
 
@@ -149,22 +143,12 @@ public class TorrentService extends Service {
         receiver = new TorrentReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(UPDATE_NOTIFY);
-        filter.addAction(Intent.ACTION_MEDIA_BUTTON);
-        filter.addAction(Intent.ACTION_SCREEN_ON);
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
         registerReceiver(receiver, filter);
 
         if (!isRunning()) {
             stopSelf();
             return;
         }
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                headset(false, false); // after boot, we need to reset mediabutton once, to make it work
-            }
-        }, AlarmManager.MIN1);
 
         startForeground(NOTIFICATION_TORRENT_ICON, buildNotification(getString(R.string.tap_restart), "", false));
     }
@@ -176,8 +160,6 @@ public class TorrentService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand " + intent);
-
-        MediaButtonReceiver.handleIntent(msc, intent);
 
         if (!isRunning()) {
             stopSelf();
@@ -312,14 +294,12 @@ public class TorrentService extends Service {
         optimization.onTaskRemoved(rootIntent);
     }
 
-    void headset(boolean b, boolean playing) {
+    void headset(boolean b, final boolean playing) {
         if (b) {
             if (msc == null) {
-                msc = new MediaSessionCompat(this, TAG, new ComponentName(this, TorrentReceiver.class), null);
-                Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
-                mediaButtonIntent.setClass(this, MediaButtonReceiver.class);
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, mediaButtonIntent, 0);
-                msc.setMediaButtonReceiver(pendingIntent);
+                Log.d(TAG, "headset mediabutton on");
+                ComponentName tr = new ComponentName(this, TorrentReceiver.class);
+                msc = new MediaSessionCompat(this, TAG, tr, null);
                 final MainApplication app = (MainApplication) getApplicationContext();
                 msc.setCallback(new MediaSessionCompat.Callback() {
                     @Override
@@ -359,19 +339,25 @@ public class TorrentService extends Service {
                 });
                 msc.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
                 msc.setActive(true);
+                // bug, when after device boot we need set playing state to 'playing' to make mediabutton work
+                msc.setPlaybackState(buildState(true));
             }
-            PlaybackStateCompat state = new PlaybackStateCompat.Builder()
-                    .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE |
-                            PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
-                    .setState(playing ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, 0, 1)
-                    .build();
-            msc.setPlaybackState(state);
+            msc.setPlaybackState(buildState(playing));
         } else {
             if (msc != null) {
+                Log.d(TAG, "headset mediabutton off");
                 msc.release();
                 msc = null;
             }
         }
+    }
+
+    PlaybackStateCompat buildState(boolean playing) {
+        return new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE |
+                        PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+                .setState(playing ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, 0, 1)
+                .build();
     }
 
     void pause() {
