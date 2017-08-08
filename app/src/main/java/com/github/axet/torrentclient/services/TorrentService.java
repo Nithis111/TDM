@@ -112,6 +112,14 @@ public class TorrentService extends Service {
         manager.notify(NOTIFICATION_DOWNLOAD_ICON + i, builder.build());
     }
 
+    static PlaybackStateCompat buildState(boolean playing) {
+        PlaybackStateCompat.Builder builder = new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE |
+                        PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+                .setState(playing ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, 0, 1);
+        return builder.build();
+    }
+
     public class TorrentReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -339,8 +347,7 @@ public class TorrentService extends Service {
                 });
                 msc.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
                 msc.setActive(true);
-                // bug, when after device boot we have to set playing state to 'playing' to make mediabutton work
-                msc.setPlaybackState(buildState(true));
+                msc.setPlaybackState(buildState(true)); // bug, when after device boot we have to set playing state to 'playing' to make mediabutton work
             }
             msc.setPlaybackState(buildState(playing));
         } else {
@@ -350,14 +357,6 @@ public class TorrentService extends Service {
                 msc = null;
             }
         }
-    }
-
-    PlaybackStateCompat buildState(boolean playing) {
-        return new PlaybackStateCompat.Builder()
-                .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE |
-                        PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
-                .setState(playing ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, 0, 1)
-                .build();
     }
 
     void pause() {
