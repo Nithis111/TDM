@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "name": "great78.archive.org",
+  "home": {
+    "get": "http://great78.archive.org"
+  },
+  "news": {
+    "get": "https://librivox.org/category/blog/",
+    "list": ".post",
+    "title": ".post-title",
+    "details": ".post a:regex(.*href=\"([^\"]*)\".*)",
+    "date": ".meta a:regex((.*))",
+    "next": ".pagination-older:regex(.*href=\"([^\"]*)\".*)"
+  },
+  "crawl": {
+    "get": "crawls",
+    "list": "div.item-ia:not(.mobile-header)",
+    "title": ".ttl",
+    "details": ".item-ttl > a:regex(.*href=\"([^\"]*)\".*)",
+    "image": ".item-img:regex([^>]*source=\"([^\"]*)\".*)",
+	"date": ".pubdate > nobr:nth-child(1)",
+    "next": ".more_search:regex(.*href=\"([^\"]*)\".*)"
+  },
+  "crawls": {
+    "New": "https://archive.org/details/78rpm?&sort=-publicdate&page=1"
+  },
+  "top": {
+    "get": "tops",
+    "grid": "crawl",
+    "torrent_filter": "* - *.mp3",
+    "update": "details"
+  },
+  "tops": {
+    "Recents": "last/3600000 desc, case when date is null then date(last/1000, 'unixepoch') else date end desc"
+  },
+  "details": {
+    "torrent": "a.download-pill[href$=torrent]:regex(.*href=\"([^\"]*)\".*)"
+  },
+  "search": {
+    "get": "last/3600000 desc, case when date is null then date(last/1000, 'unixepoch') else date end desc",
+    "grid": "crawl",
+    "torrent_filter": "* - *.mp3",
+    "update": "details"
+  }
+}
