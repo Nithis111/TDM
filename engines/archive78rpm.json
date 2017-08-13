@@ -5,12 +5,12 @@
     "get": "http://great78.archive.org"
   },
   "news": {
-    "get": "https://librivox.org/category/blog/",
+    "get": "https://blog.archive.org/",
     "list": ".post",
-    "title": ".post-title",
-    "details": ".post a:regex(.*href=\"([^\"]*)\".*)",
-    "date": ".meta a:regex((.*))",
-    "next": ".pagination-older:regex(.*href=\"([^\"]*)\".*)"
+    "title": ".entry-title",
+    "details": ".entry-title a:regex(.*href=\"([^\"]*)\".*)",
+    "date": ".entry-date:regex((.*))",
+    "next": ".nav-previous a:regex(.*href=\"([^\"]*)\".*)"
   },
   "crawl": {
     "get": "crawls",
