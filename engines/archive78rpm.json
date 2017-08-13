@@ -23,7 +23,10 @@
     "next": ".more_search:regex(.*href=\"([^\"]*)\".*)"
   },
   "crawls": {
-    "New": "https://archive.org/details/78rpm?&sort=-publicdate&page=1"
+    "New": "https://archive.org/details/78rpm?&sort=-publicdate",
+	"George": "https://archive.org/details/georgeblood?sort=-publicdate",
+	"Public": "https://archive.org/details/78rpm_thorpe?sort=-publicdate",
+	"Daniel": "https://archive.org/details/78rpm_mcneil?sort=-publicdate"
   },
   "crawl_update": {
     "get": "crawls_update",
@@ -32,7 +35,10 @@
     "downloads": ".stat nobr"
   },
   "crawls_update": {
-    "Recents": "https://archive.org/details/78rpm?and%5B%5D=mediatype%3A%22audio%22&sort=-downloads"
+    "Recents": "https://archive.org/details/78rpm?and%5B%5D=mediatype%3A%22audio%22&sort=-downloads",
+	"George": "https://archive.org/details/georgeblood",
+	"Public": "https://archive.org/details/78rpm_thorpe",
+	"Daniel": "https://archive.org/details/78rpm_mcneil"
   },
   "top": {
     "get": "tops",
