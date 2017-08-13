@@ -31,13 +31,13 @@
     "update": "details"
   },
   "tops": {
-    "Recents": "last/3600000 desc, case when date is null then date(last/1000, 'unixepoch') else date end desc"
+    "Recents": "trim(substr(date,8,4))||substr(date,0,4)||substr('0000000000'||trim(substr(date,5,2),','), -2, 2) desc"
   },
   "details": {
     "torrent": "a.download-pill[href$=torrent]:regex(.*href=\"([^\"]*)\".*)"
   },
   "search": {
-    "get": "last/3600000 desc, case when date is null then date(last/1000, 'unixepoch') else date end desc",
+    "get": "trim(substr(date,8,4))||substr(date,0,4)||substr('0000000000'||trim(substr(date,5,2),','), -2, 2) desc",
     "grid": "crawl",
     "torrent_filter": "* - *.mp3",
     "update": "details"
