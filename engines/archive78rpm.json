@@ -25,6 +25,16 @@
   "crawls": {
     "New": "https://archive.org/details/78rpm?&sort=-publicdate&page=1"
   },
+  "crawl_update": {
+    "get": "crawls_update",
+    "max": "30",
+    "list": "div.item-ia:not(.mobile-header)",
+    "title": ".ttl",
+    "downloads": ".stat nobr",
+  },
+  "crawls_update": {
+    "Recents": "https://archive.org/details/78rpm?and%5B%5D=mediatype%3A%22audio%22&sort=-downloads"
+  },
   "top": {
     "get": "tops",
     "grid": "crawl",
