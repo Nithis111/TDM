@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "name": "librivox.org",
   "home": {
     "get": "http://librivox.org"
@@ -31,14 +31,14 @@
     "update": "details"
   },
   "tops": {
-    "Recents": "date desc, last desc"
+    "Recents": "case when date is null then date(last/1000, 'unixepoch') else date end desc, last desc"
   },
   "details": {
 	"date":".product-details > dd:nth-child(6)",
     "torrent": "a[href$=torrent].book-download-btn:regex(.*href=\"([^\"]*)\".*)"
   },
   "search": {
-    "get": "date desc, last desc",
+    "get": "case when date is null then date(last/1000, 'unixepoch') else date end desc, last desc",
     "grid": "crawl",
     "torrent_filter": "*.ogg",
     "update": "details"
