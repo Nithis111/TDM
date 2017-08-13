@@ -31,13 +31,13 @@
     "update": "details"
   },
   "tops": {
-    "Recents": "trim(substr(date,8,5))||substr(date,0,4)||substr('0'||trim(substr(date,5,2),','), -2, 2) desc"
+    "Recents": "trim(substr(date,8,5))||case substr(date,0,4) when 'Jan' then '01' when 'Feb' then '02' when 'Mar' then '03' when 'Apr' then '04' when 'May' then '05' when 'Jun' then '06' when 'Jul' then '07' when 'Aug' then '08' when 'Sep' then '09' when 'Oct' then '10' when 'Nov' then '11' when 'Dec' then '12' end||substr('0'||trim(substr(date,5,2),','), -2, 2) desc"
   },
   "details": {
     "torrent": "a.download-pill[href$=torrent]:regex(.*href=\"([^\"]*)\".*)"
   },
   "search": {
-    "get": "trim(substr(date,8,5))||substr(date,0,4)||substr('0'||trim(substr(date,5,2),','), -2, 2) desc",
+    "get": "trim(substr(date,8,5))||case substr(date,0,4) when 'Jan' then '01' when 'Feb' then '02' when 'Mar' then '03' when 'Apr' then '04' when 'May' then '05' when 'Jun' then '06' when 'Jul' then '07' when 'Aug' then '08' when 'Sep' then '09' when 'Oct' then '10' when 'Nov' then '11' when 'Dec' then '12' end||substr('0'||trim(substr(date,5,2),','), -2, 2) desc",
     "grid": "crawl",
     "torrent_filter": "* - *.mp3",
     "update": "details"
