@@ -27,7 +27,6 @@
   },
   "crawl_update": {
     "get": "crawls_update",
-    "max": "30",
     "list": "div.item-ia:not(.mobile-header)",
     "title": ".ttl",
     "downloads": ".stat nobr"
