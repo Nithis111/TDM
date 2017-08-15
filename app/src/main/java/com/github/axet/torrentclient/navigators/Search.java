@@ -1115,7 +1115,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             if (needDownloadImage || needCallUpdate) {
                 if (task == null) {
                     task = new DownloadImageTask(convertView);
-                    task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, item);
+                    task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, item); // RejectedExecutionException
                 }
                 downloadsItems.put(item, task);
                 downloadsViews.put(convertView, task);
