@@ -114,7 +114,7 @@ public class InfoFragment extends Fragment implements MainActivity.TorrentFragme
         final Uri p = storage.path(t);
 
         TextView path = (TextView) v.findViewById(R.id.torrent_path);
-        path.setText(storage.getTargetName(p));
+        path.setText(storage.getDisplayName(p));
 
         pathButton = v.findViewById(R.id.torrent_path_open);
         Intent intent = MainActivity.openFolderIntent(p);

@@ -334,7 +334,7 @@ public class AddDialogFragment extends DialogFragment implements MainActivity.To
                 positive.setEnabled(e);
             }
         }
-        path.setText(storage.getTargetName(u));
+        path.setText(storage.getDisplayName(u));
 
         check.setOnClickListener(new View.OnClickListener() {
             @Override

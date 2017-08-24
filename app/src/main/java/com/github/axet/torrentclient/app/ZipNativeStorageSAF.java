@@ -92,7 +92,7 @@ public class ZipNativeStorageSAF extends NativeStorage {
 
     @Override
     public long lastModified() {
-        return storage.getLast(u);
+        return storage.getLastModified(u);
     }
 
     @Override
