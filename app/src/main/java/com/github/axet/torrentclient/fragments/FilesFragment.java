@@ -49,15 +49,29 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
     public static class TorFolder extends TorName {
         public boolean expand;
         public ArrayList<TorName> files = new ArrayList<>();
+        long t;
+
+        public TorFolder(long t) {
+            this.t = t;
+        }
 
         public boolean getCheck() {
             boolean b = true;
             for (TorName m : files) {
                 TorFile k = (TorFile) m;
-                if (!k.file.getCheck())
+                if (!k.getCheck())
                     b = false;
             }
             return b;
+        }
+
+        public void setCheck(boolean b) {
+            String torrentName = Libtorrent.torrentName(t);
+            Libtorrent.torrentFilesCheckFilter(t, torrentName + "/" + path + "/*", b);
+            for (TorName m : files) {
+                TorFile k = (TorFile) m;
+                k.file.setCheck(b); // update java side runtime data
+            }
         }
     }
 
@@ -80,7 +94,11 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
 
         public void setCheck(boolean b) {
             Libtorrent.torrentFilesCheck(t, index, b);
-            file.setCheck(b);
+            file.setCheck(b); // update java side runtime data
+        }
+
+        public boolean getCheck() {
+            return file.getCheck(); // read from runtime data
         }
     }
 
@@ -145,10 +163,7 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
                 check.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        for (TorName m : f.files) {
-                            TorFile k = (TorFile) m;
-                            k.setCheck(check.isChecked());
-                        }
+                        f.setCheck(check.isChecked());
                         updateTotal();
                         notifyDataSetChanged();
                     }
@@ -186,7 +201,7 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
                 f.update();
 
                 final CheckBox check = (CheckBox) view.findViewById(R.id.torrent_files_check);
-                check.setChecked(f.file.getCheck());
+                check.setChecked(f.getCheck());
                 check.jumpDrawablesToCurrentState();
                 check.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -205,7 +220,7 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
                     @Override
                     public void onClick(View v) {
                         Libtorrent.torrentFilesCheck(t, f.index, check.isChecked());
-                        f.file.setCheck(check.isChecked()); // update runtime data
+                        f.file.setCheck(check.isChecked()); // update java side runtime data
                         updateTotal();
                         notifyDataSetChanged();
                     }
@@ -246,7 +261,7 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
                         if (parent != null) {
                             TorFolder folder = folders.get(parent);
                             if (folder == null) {
-                                folder = new TorFolder();
+                                folder = new TorFolder(t);
                                 folder.path = parent;
                                 folder.name = folder.path;
                                 folder.expand = false;
@@ -280,12 +295,12 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
                     TorFolder n = (TorFolder) f;
                     for (TorName k : n.files) {
                         TorFile m = (TorFile) k;
-                        m.file.setCheck(true);
+                        m.file.setCheck(true); // update java side runtime data
                     }
                 }
                 if (f instanceof TorFile) {
                     TorFile n = (TorFile) f;
-                    n.file.setCheck(true);
+                    n.file.setCheck(true); // update java side runtime data
                 }
             }
             updateTotal();
@@ -299,12 +314,12 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
                     TorFolder n = (TorFolder) f;
                     for (TorName k : n.files) {
                         TorFile m = (TorFile) k;
-                        m.file.setCheck(false);
+                        m.file.setCheck(false); // update java side runtime data
                     }
                 }
                 if (f instanceof TorFile) {
                     TorFile n = (TorFile) f;
-                    n.file.setCheck(false);
+                    n.file.setCheck(false); // update java side runtime data
                 }
             }
             updateTotal();
