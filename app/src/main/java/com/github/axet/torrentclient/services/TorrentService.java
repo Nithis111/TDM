@@ -123,11 +123,14 @@ public class TorrentService extends Service {
     public class TorrentReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(UPDATE_NOTIFY)) {
+            String a = intent.getAction();
+            if (a == null)
+                return;
+            if (a.equals(UPDATE_NOTIFY)) {
                 showNotificationAlarm(true, intent);
                 return;
             }
-            Log.d(TAG, "TorrentReceiver " + intent);
+            Log.d(TAG, "TorrentReceiver " + intent); // skip freq update log messages
             MediaButtonReceiver.handleIntent(msc, intent);
         }
     }

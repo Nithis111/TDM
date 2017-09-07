@@ -37,8 +37,9 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
     long t;
 
     public static class TorName {
+        public String fullPath;
         public String path; // sort by value
-        public String name;
+        public String name; // display value
         public long size;
 
         public String toString() {
@@ -66,8 +67,7 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
         }
 
         public void setCheck(boolean b) {
-            String torrentName = Libtorrent.torrentName(t);
-            Libtorrent.torrentFilesCheckFilter(t, torrentName + "/" + path + "/*", b);
+            Libtorrent.torrentFilesCheckFilter(t, fullPath + "/*", b);
             for (TorName m : files) {
                 TorFile k = (TorFile) m;
                 k.file.setCheck(b); // update java side runtime data
@@ -252,6 +252,7 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
                         TorFile f = new TorFile(t, i);
 
                         String p = f.file.getPath();
+                        f.fullPath = p;
                         p = p.substring(torrentName.length() + 1);
                         f.path = p;
                         File file = new File(p);
