@@ -54,6 +54,7 @@ public class MainApplication extends com.github.axet.androidlibrary.app.MainAppl
     public TorrentPlayer player;
 
     SaveState savestate;
+    TorrentPlayer.Receiver playerStop;
 
     final ArrayList<Runnable> initArray = new ArrayList<>();
     Thread initThread;
@@ -137,14 +138,27 @@ public class MainApplication extends com.github.axet.androidlibrary.app.MainAppl
                 }
             }
         }
+        playerStop = new TorrentPlayer.Receiver(this) {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                super.onReceive(context, intent);
+                String a = intent.getAction();
+                if (a == null)
+                    return;
+                if (a.equals(TorrentPlayer.PLAYER_STOP)) {
+                    if (player != null) {
+                        player.close();
+                        player = null;
+                    }
+                }
+            }
+        };
     }
 
     public void playerStop() {
         if (player != null) {
             player.notifyStop();
-            player.close();
-            player = null;
-            TorrentPlayer.save(this, player);
+            TorrentPlayer.save(this, null);
         }
     }
 
@@ -169,6 +183,10 @@ public class MainApplication extends com.github.axet.androidlibrary.app.MainAppl
         if (savestate != null) {
             unregisterReceiver(savestate);
             savestate = null;
+        }
+        if (playerStop != null) {
+            playerStop.close();
+            playerStop = null;
         }
         if (player != null) {
             TorrentPlayer.save(this, player);

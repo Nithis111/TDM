@@ -134,7 +134,7 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
 
         public void start() {
             String s = path.getScheme();
-            if (s.startsWith(ContentResolver.SCHEME_FILE)) {
+            if (s.equals(ContentResolver.SCHEME_FILE)) {
                 File f = new File(path.getPath());
                 if (!f.exists())
                     f.mkdirs();
@@ -248,8 +248,8 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
         public boolean readonly(Storage storage) {
             String s = path.getScheme();
             if (Build.VERSION.SDK_INT >= 21 && s.startsWith(ContentResolver.SCHEME_CONTENT)) {
-                return !storage.permitted(path, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            } else if (s.startsWith(ContentResolver.SCHEME_FILE)) {
+                return storage.ejected(path, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            } else if (s.equals(ContentResolver.SCHEME_FILE)) {
                 if (Libtorrent.metaTorrent(t) && completed()) {
                     return false;  // ignore, readonly we fully downloaded
                 }
@@ -892,7 +892,7 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
         Log.d(TAG, "resume()");
 
         if (mcastLock == null) {
-            WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            WifiManager wm = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             if (wm != null) {
                 mcastLock = wm.createMulticastLock(TAG);
                 mcastLock.acquire();
