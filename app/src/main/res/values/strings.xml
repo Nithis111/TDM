@@ -123,4 +123,5 @@
     <string name="torrent_notfound">Not found, ejected</string>
     <string name="delete_unselected">Delete Unselected Files</string>
     <string name="delete_old">Delete Old</string>
+    <string name="port_down">Port Site Down</string>
 </resources>

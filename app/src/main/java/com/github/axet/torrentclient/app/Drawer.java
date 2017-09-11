@@ -85,7 +85,7 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
 
     Thread infoThread;
     List<String> infoOld;
-    boolean infoPort;
+    Boolean infoPort;
     long infoTime; // last time checked
 
     List<ProxyDrawerItem.ViewHolder> viewList = new ArrayList<>();
@@ -648,14 +648,24 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
                 infoThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        final boolean b = Libtorrent.portCheck();
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                infoPort = b;
-                                infoThread = null;
-                            }
-                        });
+                        try {
+                            final boolean b = Libtorrent.portCheck();
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    infoPort = b;
+                                    infoThread = null;
+                                }
+                            });
+                        } catch (RuntimeException e) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    infoPort = null;
+                                    infoThread = null;
+                                }
+                            });
+                        }
                     }
                 }, "Port Check");
                 infoThread.start();
@@ -667,7 +677,10 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
                 port.setText(R.string.port_closed);
             }
         } else {
-            if (infoPort) {
+            if (infoPort == null) {
+                portIcon.setImageResource(R.drawable.port_no);
+                port.setText(R.string.port_down);
+            } else if (infoPort) {
                 portIcon.setImageResource(R.drawable.port_ok);
                 port.setText(R.string.port_open);
             } else {

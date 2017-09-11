@@ -122,4 +122,5 @@
     <string name="torrent_notfound">Не найдено, размонтировано</string>
     <string name="delete_unselected">Удалить не выбранные файлы</string>
     <string name="delete_old">Удалить старые</string>
+    <string name="port_down">Сайт недоступен</string>
 </resources>
