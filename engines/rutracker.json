@@ -50,5 +50,10 @@
     "leech": "td.leechmed b",
     "next": ".nav b+a:regex(.*href=\"([^\"]*)\".*)",
     "update": "details"
+  },
+  "favs": {
+    "get": "date desc",
+    "grid": "crawl",
+    "update": "details"
   }
 }

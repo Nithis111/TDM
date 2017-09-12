@@ -123,4 +123,10 @@
     <string name="delete_unselected">Удалить не выбранные файлы</string>
     <string name="delete_old">Удалить старые</string>
     <string name="port_down">Сайт недоступен</string>
+    <string name="footer_add_name">Add (%1$d)</string>
+    <string name="footer_remove_name">Remove (%1$d)</string>
+    <string name="remove_favorites">Remove Favorites</string>
+    <string name="remove_favorites_text">Remove (%1$d) from favorites?</string>
+    <string name="add_favorites">Add Favorites</string>
+    <string name="add_favorites_text">Add (%1$d) to favorites?</string>
 </resources>

@@ -3,12 +3,106 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <Button
-        android:id="@+id/search_footer_next"
+    <LinearLayout
+        android:id="@+id/search_footer_buttons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/load_more" />
+        android:layout_gravity="center">
+
+        <FrameLayout
+            android:id="@+id/search_footer_remove"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center">
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="?attr/search_rating_bg"
+                    android:button="@android:color/transparent"
+                    android:clickable="false"
+                    android:gravity="center"
+                    android:src="@drawable/ic_star_black_24dp"
+                    android:tint="?attr/colorAccent" />
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_gravity="left|top"
+                    android:clickable="false"
+                    android:src="@drawable/ic_remove_black_24dp"
+                    android:tint="?attr/colorAccent" />
+            </FrameLayout>
+
+
+            <TextView
+                android:id="@+id/search_footer_remove_name"
+                style="@style/tops_style_light"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/footer_remove_name" />
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/search_footer_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:text="@string/load_more" />
+
+        <FrameLayout
+            android:id="@+id/search_footer_add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center">
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="?attr/search_rating_bg"
+                    android:button="@android:color/transparent"
+                    android:clickable="false"
+                    android:gravity="center"
+                    android:src="@drawable/ic_star_black_24dp"
+                    android:tint="?attr/colorAccent" />
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_gravity="left|top"
+                    android:clickable="false"
+                    android:src="@drawable/ic_add_black_24dp"
+                    android:tint="?attr/colorAccent" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/search_footer_add_name"
+                style="@style/tops_style_light"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/footer_add_name" />
+        </FrameLayout>
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/search_footer_progress"
