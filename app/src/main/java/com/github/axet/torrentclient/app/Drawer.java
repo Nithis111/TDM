@@ -19,7 +19,9 @@ import android.os.Build;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -90,6 +92,8 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
 
     List<ProxyDrawerItem.ViewHolder> viewList = new ArrayList<>();
 
+    ItemTouchHelper touchHelper;
+
     public Drawer(final MainActivity main, final Toolbar toolbar) {
         this.context = main;
         this.main = main;
@@ -130,6 +134,31 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
                 })
                 .withOnDrawerItemClickListener(this)
                 .build();
+
+        touchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                if (!(viewHolder instanceof SearchDrawerItem.ViewHolder))
+                    return false;
+                if (!(target instanceof SearchDrawerItem.ViewHolder))
+                    return false;
+
+                ItemAdapter<IDrawerItem> ad = drawer.getItemAdapter();
+                int i = ad.getFastAdapter().getHolderAdapterPosition(viewHolder);
+                int k = ad.getFastAdapter().getHolderAdapterPosition(target);
+                ad.move(i, k);
+
+                final EnginesManager engines = main.getEngines();
+                engines.move(engines.indexOf(ad.getItem(i).getTag()), engines.indexOf(ad.getItem(k).getTag()));
+
+                return true;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+            }
+        });
+        touchHelper.attachToRecyclerView(drawer.getRecyclerView());
 
         Drawable navigationIcon = toolbar.getNavigationIcon();
         unread = new UnreadCountDrawable(context, navigationIcon, Drawer.this);
