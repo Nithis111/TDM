@@ -922,8 +922,6 @@ public class Crawl extends Search {
     @Override
     public void delete() {
         super.delete();
-        db.getWritableDatabase().delete(CrawlEntry.TABLE_NAME, CrawlEntry.COLUMN_ENGINE + " == ?", new String[]{engine.getName()});
-        db.getWritableDatabase().delete(IndexEntry.TABLE_NAME, IndexEntry.COL_ENGINE + " == ?", new String[]{engine.getName()});
     }
 
     void progressUpdate() {

@@ -1945,6 +1945,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
 
     // delete entry from EngineManager, 'trash' icon
     public void delete() {
+        db.getWritableDatabase().delete(Crawl.CrawlEntry.TABLE_NAME, Crawl.CrawlEntry.COLUMN_ENGINE + " == ?", new String[]{engine.getName()});
+        db.getWritableDatabase().delete(Crawl.IndexEntry.TABLE_NAME, Crawl.IndexEntry.COL_ENGINE + " == ?", new String[]{engine.getName()});
     }
 
     void detailsLoad(HttpProxyClient httpImages, final SearchItem item) {
