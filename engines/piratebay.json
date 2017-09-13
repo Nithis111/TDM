@@ -1,5 +1,5 @@
 {
-  "version": 10,
+  "version": 11,
   "name": "The Pirate Bay",
   "home": {
     "get": "https://thepiratebay.org/"
@@ -31,7 +31,7 @@
     "All": "https://thepiratebay.org/top/all"
   },
   "search": {
-    "get": "https://thepiratebay.org/search/%s/0/99/0/",
+    "get": "https://thepiratebay.org/search/%%QUERY%%/0/99/0/",
     "list": "tbody tr",
     "title": "a.detLink:regex(<a[^>]*>(.*)</a>)",
     "details": "a.detLink:regex(.*href=\"([^\"]*)\".*)",

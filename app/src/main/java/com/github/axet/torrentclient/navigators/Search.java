@@ -1599,7 +1599,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             if (search != null) {
                 try {
                     String query = URLEncoder.encode(search, MainApplication.UTF8);
-                    url = String.format(get, query);
+                    url = get.replaceAll("%%QUERY%%", query);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -1615,7 +1615,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             if (search != null) {
                 try {
                     String query = URLEncoder.encode(search, MainApplication.UTF8);
-                    url = String.format(json_get, query);
+                    url = json_get.replaceAll("%%QUERY%%", query);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -2022,6 +2022,11 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     void detailsList(SearchItem item, Map<String, String> s, String url, String html) { // not UI thread
         item.update(s, url, html);
         item.base = url;
+        if (engine_favs != null) {
+            if (item.fav) {
+                favsSave(item);
+            }
+        }
     }
 
     void searchCrawl(Map<String, String> s, String search, String order, final Runnable done) {
