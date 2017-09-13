@@ -25,15 +25,15 @@
     "torrent_filter": "*.mp3"
   },
   "tops": {
-    "Views": "https://archive.org/details/78rpm?and%5B%5D=mediatype%3A%22audio%22&sort=-downloads",
-    "Recent": "https://archive.org/details/78rpm?and%5B%5D=mediatype%3A%22audio%22&sort=-publicdate"
+    "Views": "https://archive.org/details/78rpm?and[]=mediatype%3A%22audio%22&sort=-downloads",
+    "Recent": "https://archive.org/details/78rpm?and[]=mediatype%3A%22audio%22&sort=-publicdate"
   },
   "details": {
     "downloads": "div.col-sm-4 > div:nth-child(3) > div:nth-child(6)",
     "torrent": "a.download-pill[href$=torrent]:regex(.*href=\"([^\"]*)\".*)"
   },
   "search": {
-    "get": "https://archive.org/details/78rpm?sort=-publicdate&and%5B%5D=mediatype%3A%22audio%22&and%5B%5D=%%QUERY%%",
+    "get": "https://archive.org/details/78rpm?sort=-publicdate&and[]=mediatype%3A%22audio%22&and[]=%%QUERY%%",
     "grid": "div.item-ia:not(.mobile-header)",
     "title": ".ttl",
     "details": ".item-ttl > a:regex(.*href=\"([^\"]*)\".*)",
