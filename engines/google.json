@@ -1,11 +1,11 @@
 {
-  "version": 8,
+  "version": 9,
   "name": "google.com",
   "home": {
     "get": "https://google.com"
   },
   "search": {
-    "get": "https://www.google.com/search?q=filetype:torrent+%s",
+    "get": "https://www.google.com/search?q=filetype:torrent+%%QUERY%%",
     "list": "div h3 a",
     "details": "a:regex(.*(data-)?href=\"(/url\\?q=)?([^\"]*)\".*)",
     "title": "a",

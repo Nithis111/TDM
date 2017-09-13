@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "name": "great78.archive.org",
   "home": {
     "get": "http://great78.archive.org"
@@ -33,7 +33,7 @@
     "torrent": "a.download-pill[href$=torrent]:regex(.*href=\"([^\"]*)\".*)"
   },
   "search": {
-    "get": "https://archive.org/details/78rpm?sort=-publicdate&and[]=",
+    "get": "https://archive.org/details/78rpm?sort=-publicdate&and%5B%5D=mediatype%3A%22audio%22&and%5B%5D=%%QUERY%%",
     "grid": "div.item-ia:not(.mobile-header)",
     "title": ".ttl",
     "details": ".item-ttl > a:regex(.*href=\"([^\"]*)\".*)",
