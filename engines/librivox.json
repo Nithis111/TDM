@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "name": "librivox.org",
   "home": {
     "get": "http://librivox.org"
@@ -41,6 +41,11 @@
     "get": "last/3600000 desc, date desc",
     "grid": "crawl",
     "torrent_filter": "*.ogg",
+    "update": "details"
+  },
+  "favs": {
+    "get": "date desc",
+    "grid": "crawl",
     "update": "details"
   }
 }

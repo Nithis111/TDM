@@ -123,4 +123,11 @@
     <string name="torrent_notfound">Not found, ejected</string>
     <string name="delete_unselected">Delete Unselected Files</string>
     <string name="delete_old">Delete Old</string>
+    <string name="port_down">Port Site Down</string>
+    <string name="footer_add_name">Add (%1$d)</string>
+    <string name="footer_remove_name">Remove (%1$d)</string>
+    <string name="remove_favorites">Remove Favorites</string>
+    <string name="remove_favorites_text">Remove (%1$d) from favorites?</string>
+    <string name="add_favorites">Add Favorites</string>
+    <string name="add_favorites_text">Add (%1$d) to favorites?</string>
 </resources>

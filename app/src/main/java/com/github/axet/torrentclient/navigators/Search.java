@@ -1,9 +1,9 @@
 package com.github.axet.torrentclient.navigators;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -46,7 +46,6 @@ import com.github.axet.torrentclient.dialogs.BrowserDialogFragment;
 import com.github.axet.torrentclient.dialogs.LoginDialogFragment;
 import com.github.axet.torrentclient.net.HttpProxyClient;
 
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
@@ -54,7 +53,6 @@ import org.jsoup.select.Elements;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -67,7 +65,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,8 +74,11 @@ import cz.msebera.android.httpclient.cookie.Cookie;
 import cz.msebera.android.httpclient.impl.client.BasicCookieStore;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.impl.client.HttpClientBuilder;
-import libtorrent.File;
 import libtorrent.Libtorrent;
+
+import static com.github.axet.torrentclient.navigators.Crawl.CRAWL_SHOW;
+import static com.github.axet.torrentclient.navigators.Crawl.EN;
+import static com.github.axet.torrentclient.navigators.Crawl.getLong;
 
 public class Search extends BaseAdapter implements DialogInterface.OnDismissListener,
         UnreadCountDrawable.UnreadCount, MainActivity.NavigatorInterface,
@@ -102,6 +102,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     HttpProxyClient http;
     WebViewCustom web;
     SearchEngine engine;
+    Map<String, String> engine_favs;
     Handler handler;
 
     String lastSearch; // last search request
@@ -120,11 +121,17 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     TextView searchText;
 
     ViewGroup toolbar;
+    TextView toolbar_favs_name;
     int toolbarIndex = -1;
 
     // footer data
     View footer;
     View footer_next; // load next button
+    View footer_buttons;
+    View footer_remove;
+    TextView footer_remove_text;
+    View footer_add;
+    TextView footer_add_text;
     ProgressBar footer_progress; // progress bar / button
     View footer_stop; // stop image
 
@@ -139,6 +146,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     View gridView;
 
     HtmlUpdateListener htmlupdate;
+
+    Crawl.CrawlDbHelper db;
 
     public static boolean isEmpty(String s) {
         return s == null || s.isEmpty();
@@ -240,6 +249,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     }
 
     public static class SearchItem {
+        public Boolean fav;
         public String title;
         public String image;
         public String details;
@@ -253,7 +263,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         public Long downloads; // downloads from last update / month (pepend on site)
         public Long downloads_total; // total downloads
 
-        public long id; // database id
+        public Long id; // database id
         public long last; // last update ms
         public String html; // source html
         public Bitmap imageBitmap; // bitmap image
@@ -268,6 +278,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             this.search = s;
             this.base = url;
             this.html = html;
+            this.fav = false; // TODO add checkbox add new items to favs
             update(s, url, html);
         }
 
@@ -285,6 +296,36 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             item.downloads_total = matcherLong(html, s.get("downloads_total"), item.downloads_total);
             item.details = matcherUrl(url, html, s.get("details"), item.details);
             item.details_html = matcherHtml(html, s.get("details_html"), item.details_html);
+        }
+
+        public void update(SearchItem old) {
+            SearchItem item = this;
+            if (item.fav == null)
+                item.fav = old.fav;
+            if (item.title == null)
+                item.title = old.title;
+            if (item.image == null)
+                item.image = old.image;
+            if (item.magnet == null)
+                item.magnet = old.magnet;
+            if (item.torrent == null)
+                item.torrent = old.torrent;
+            if (item.date == null)
+                item.date = old.date;
+            if (item.size == null)
+                item.size = old.size;
+            if (item.seed == null)
+                item.seed = old.seed;
+            if (item.leech == null)
+                item.leech = old.leech;
+            if (item.downloads == null)
+                item.downloads = old.downloads;
+            if (item.downloads_total == null)
+                item.downloads_total = old.downloads_total;
+            if (item.details == null)
+                item.details = old.details;
+            if (item.details_html == null)
+                item.details_html = old.details_html;
         }
 
         public Object get(String name) {
@@ -442,6 +483,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         this.main = m;
         this.context = m;
         this.handler = new Handler();
+        this.db = new Crawl.CrawlDbHelper(m);
 
         final SharedPreferences shared = PreferenceManager.getDefaultSharedPreferences(context);
 
@@ -459,6 +501,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
 
     public void setEngine(SearchEngine engine) {
         this.engine = engine;
+        this.engine_favs = engine.getMap("favs");
     }
 
     public SearchEngine getEngine() {
@@ -526,6 +569,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
 
         footer_progress = (ProgressBar) footer.findViewById(R.id.search_footer_progress);
         footer_stop = footer.findViewById(R.id.search_footer_stop);
+        footer_buttons = footer.findViewById(R.id.search_footer_buttons);
         footer_next = footer.findViewById(R.id.search_footer_next);
         footer_next.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -544,6 +588,52 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                 updateFooterButtons();
             }
         });
+        footer_remove = footer.findViewById(R.id.search_footer_remove);
+        footer_remove.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                builder.setTitle(R.string.remove_favorites);
+                builder.setMessage(getContext().getString(R.string.remove_favorites_text, (long) footer_remove_text.getTag()));
+                builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+                builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        footerRemove();
+                    }
+                });
+                builder.show();
+            }
+        });
+        footer_remove_text = (TextView) footer_remove.findViewById(R.id.search_footer_remove_name);
+        footer_add = footer.findViewById(R.id.search_footer_add);
+        footer_add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                builder.setTitle(R.string.add_favorites);
+                builder.setMessage(getContext().getString(R.string.add_favorites_text, (long) footer_add_text.getTag()));
+                builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+                builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        footerAdd();
+                    }
+                });
+                builder.show();
+            }
+        });
+        footer_add_text = (TextView) footer_add.findViewById(R.id.search_footer_add_name);
         footer_progress.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -698,11 +788,26 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
 
         toolbar = (ViewGroup) header.findViewById(R.id.search_header_toolbar);
         final View toolbar_news = header.findViewById(R.id.search_header_toolbar_news);
+        final View toolbar_favs = header.findViewById(R.id.search_header_toolbar_favs);
+        toolbar_favs_name = (TextView) toolbar_favs.findViewById(R.id.search_header_toolbar_favs_name);
         final View toolbar_search = header.findViewById(R.id.search_header_toolbar_search);
         final Map<String, String> news = engine.getMap("news");
         final Map<String, String> top = engine.getMap("top");
         if (news == null && top == null) {
             toolbar.setVisibility(View.GONE);
+        }
+        if (engine_favs == null) {
+            toolbar_favs.setVisibility(View.GONE);
+        } else {
+            updateFavCount();
+            toolbar_favs.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    clearList();
+                    selectToolbar(toolbar.findViewById(R.id.search_header_toolbar_favs));
+                    favsLoad(engine_favs, engine_favs.get("get"));
+                }
+            });
         }
         toolbar_news.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -765,6 +870,10 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         });
     }
 
+    void updateFavCount() {
+        toolbar_favs_name.setText("" + db.favsCount(engine.getName()));
+    }
+
     void gridUpdate() {
         if (gridView != null) {
             grid.setNumColumns(GridView.AUTO_FIT);
@@ -822,7 +931,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             int i;
             for (i = 0; i < toolbar.getChildCount(); i++) {
                 View c = toolbar.getChildAt(i);
-                if (c.getId() == R.id.search_header_toolbar_search) {
+                if (c.getId() == R.id.search_header_toolbar_favs) {
                     break;
                 }
             }
@@ -888,11 +997,28 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         }
 
         if (thread == null) {
-            footer_next.setVisibility(View.VISIBLE);
+            footer_buttons.setVisibility(View.VISIBLE);
+            if (engine_favs != null) {
+                long c;
+                if (engine_favs == nextSearch) {
+                    c = db.favsCount(engine.getName());
+                    footer_add.setVisibility(View.INVISIBLE);
+                } else {
+                    c = list.size();
+                    footer_add.setVisibility(View.VISIBLE);
+                }
+                footer_add_text.setText(getContext().getString(R.string.footer_add_name, c));
+                footer_add_text.setTag(c);
+                footer_remove_text.setText(getContext().getString(R.string.footer_remove_name, c));
+                footer_remove_text.setTag(c);
+            } else {
+                footer_add.setVisibility(View.INVISIBLE);
+                footer_remove.setVisibility(View.INVISIBLE);
+            }
             footer_progress.setVisibility(View.GONE);
             footer_stop.setVisibility(View.GONE);
         } else {
-            footer_next.setVisibility(View.GONE);
+            footer_buttons.setVisibility(View.GONE);
             footer_progress.setVisibility(View.VISIBLE);
             footer_stop.setVisibility(View.VISIBLE);
         }
@@ -1195,6 +1321,22 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         TextView text = (TextView) convertView.findViewById(R.id.search_item_name);
         text.setText(item.title);
 
+        final ImageView fav = (ImageView) convertView.findViewById(R.id.search_item_fav);
+        fav.setVisibility(View.GONE);
+        if (engine_favs != null) {
+            fav.setVisibility(View.VISIBLE);
+            fav.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    item.fav = !item.fav;
+                    favsSave(item);
+                    updateFav(item, fav);
+                    updateFavCount();
+                }
+            });
+            updateFav(item, fav);
+        }
+
         ImageView magnet = (ImageView) convertView.findViewById(R.id.search_item_magnet);
         magnet.setEnabled(false);
         magnet.setColorFilter(Color.GRAY);
@@ -1298,6 +1440,13 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                 }
             });
         }
+    }
+
+    void updateFav(SearchItem item, ImageView fav) {
+        if (item.fav)
+            fav.setImageResource(R.drawable.ic_star_black_24dp);
+        else
+            fav.setImageResource(R.drawable.ic_star_border_black_24dp);
     }
 
     public void inject(final String url, final HttpClient.DownloadResponse html, String js, String js_post, final Inject exec) {
@@ -1485,7 +1634,19 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         }
     }
 
-    public void search(final Map<String, String> s, String type, String url, String search, final Runnable done) {
+    public void search(final Map<String, String> s, String type, final String url, final String search, final Runnable done) {
+        String select = gridUpdate(s);
+        if (select.equals("crawl")) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    gridUpdate();
+                    searchCrawl(s, search, url, done);
+                }
+            });
+            return;
+        }
+
         HttpClient.DownloadResponse html = null;
         String json = null;
 
@@ -1645,8 +1806,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         searchList(s, type, url, html == null ? "" : html.getHtml());
     }
 
-    // UI thread
-    void searchList(Map<String, String> s, String type, String url, String html) {
+    String gridUpdate(Map<String, String> s) {
         String select = null;
         String l = s.get("list");
         if (l != null) {
@@ -1659,6 +1819,12 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             LayoutInflater inflater = LayoutInflater.from(getContext());
             gridView = inflater.inflate(R.layout.search_item_grid, grid, false);
         }
+        return select;
+    }
+
+    // UI thread
+    void searchList(Map<String, String> s, String type, String url, String html) {
+        String select = gridUpdate(s);
         gridUpdate();
 
         Document doc = Jsoup.parse(html);
@@ -1666,9 +1832,18 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         for (int i = 0; i < list.size(); i++) {
             SearchItem item = new SearchItem(s, url, list.get(i).outerHtml());
 
-            // do not empty items
+            // do not add empty items
             if (isEmpty(item.title) && isEmpty(item.magnet) && isEmpty(item.torrent) && isEmpty(item.details))
                 continue;
+
+            if (engine_favs != null) {
+                Cursor c = db.exist(engine.getName(), item);
+                if (c != null) {
+                    SearchItem old = db.getSearchItem(s, c);
+                    item.update(old);
+                    item.fav = old.fav; // force update db value to the list
+                }
+            }
 
             this.list.add(item);
         }
@@ -1770,6 +1945,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
 
     // delete entry from EngineManager, 'trash' icon
     public void delete() {
+        db.getWritableDatabase().delete(Crawl.CrawlEntry.TABLE_NAME, Crawl.CrawlEntry.COLUMN_ENGINE + " == ?", new String[]{engine.getName()});
+        db.getWritableDatabase().delete(Crawl.IndexEntry.TABLE_NAME, Crawl.IndexEntry.COL_ENGINE + " == ?", new String[]{engine.getName()});
     }
 
     void detailsLoad(HttpProxyClient httpImages, final SearchItem item) {
@@ -1847,4 +2024,135 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         item.base = url;
     }
 
+    void searchCrawl(Map<String, String> s, String search, String order, final Runnable done) {
+        String next = null;
+        String nextText = null;
+
+        int count = 0;
+
+        if (search != null) {
+            search = search.toLowerCase(EN);
+            Cursor c = db.getWordMatches(engine.getName(), search, null, order, this.list.size(), CRAWL_SHOW + 1);
+            while (c != null) {
+                count++;
+                if (count > CRAWL_SHOW) {
+                    next = order;
+                    nextText = search;
+                    break;
+                }
+                SearchItem item = db.getSearchItem(s, c);
+                if (item != null)
+                    this.list.add(item);
+                if (!c.moveToNext())
+                    break;
+            }
+        } else {
+            Cursor c = db.search(engine.getName(), order, this.list.size(), CRAWL_SHOW + 1);
+            while (c != null) {
+                count++;
+                if (count > CRAWL_SHOW) {
+                    next = order;
+                    nextText = null;
+                    break;
+                }
+                SearchItem item = db.getSearchItem(s, c);
+                if (item != null)
+                    this.list.add(item);
+                if (!c.moveToNext())
+                    break;
+            }
+        }
+
+        this.next = next;
+        this.nextText = nextText;
+        this.nextSearch = s;
+
+        notifyDataSetChanged();
+
+        if (count > 0)
+            hideKeyboard();
+
+        if (done != null)
+            done.run();
+    }
+
+    void favsLoad(Map<String, String> s, String order) {
+        String select = gridUpdate(s);
+        gridUpdate();
+
+        String next = null;
+        String nextText = null;
+
+        int count = 0;
+
+        Cursor c = db.favs(engine.getName(), order, this.list.size(), Crawl.CRAWL_SHOW + 1);
+        while (c != null) {
+            count++;
+            if (count > Crawl.CRAWL_SHOW) {
+                next = order;
+                nextText = null;
+                break;
+            }
+            SearchItem item = db.getSearchItem(s, c);
+            if (item != null)
+                this.list.add(item);
+            if (!c.moveToNext())
+                break;
+        }
+
+        this.next = next;
+        this.nextText = nextText;
+        this.nextSearch = s;
+        this.nextType = null;
+
+        updateFooterButtons();
+
+        if (count > 0)
+            hideKeyboard();
+
+        notifyDataSetChanged();
+    }
+
+    void favsSave(SearchItem item) {
+        if (item.id == null) {
+            Cursor c = db.exist(engine.getName(), item);
+            if (c != null)
+                item.id = getLong(c, Crawl.CrawlEntry._ID);
+        }
+        if (item.id == null) {
+            item.id = db.addCrawl(engine.getName(), item);
+        } else {
+            db.updateCrawl(item.id, item);
+        }
+    }
+
+    void footerRemove() {
+        if (engine_favs == nextSearch) {
+            db.favsAllUpdate(engine.getName(), false);
+            list.clear();
+            next = null;
+        } else {
+            for (SearchItem item : list) {
+                item.fav = false;
+                favsSave(item);
+            }
+        }
+        updateFavCount();
+        notifyDataSetChanged();
+        updateFooterButtons();
+    }
+
+    void footerAdd() {
+        if (engine_favs == nextSearch) {
+            ; // not exist (we cant add anything staying on 'favs' tab)
+        } else {
+            for (SearchItem item : list) {
+                item.fav = true;
+                favsSave(item);
+            }
+        }
+        updateFavCount();
+        notifyDataSetChanged();
+        updateFooterButtons();
+    }
 }

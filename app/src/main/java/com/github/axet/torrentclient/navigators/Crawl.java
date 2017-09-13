@@ -78,8 +78,6 @@ public class Crawl extends Search {
     Thread crawlThread;
     HttpProxyClient crawlHttp;
 
-    CrawlDbHelper db;
-
     public static boolean isString(String s) {
         if (s.length() < 2)
             return false;
@@ -114,6 +112,17 @@ public class Crawl extends Search {
         return c.getLong(i);
     }
 
+    public static Boolean getBoolean(Cursor c, String name) {
+        return getBoolean(c, name, null);
+    }
+
+    public static Boolean getBoolean(Cursor c, String name, Boolean d) {
+        Long l = getLong(c, name);
+        if (l == null)
+            return d;
+        return l == 1;
+    }
+
     public static String strip(String s, String cc) {
         for (char c : cc.toCharArray()) {
             while (s.startsWith("" + c)) {
@@ -126,17 +135,10 @@ public class Crawl extends Search {
         return s;
     }
 
-    public static class CrawlSort implements Comparable<State> {
-
-        @Override
-        public int compareTo(@NonNull State o) {
-            return 0;
-        }
-    }
-
     public static class CrawlEntry implements BaseColumns {
         public static final String TABLE_NAME = "crawl";
         public static final String COLUMN_ENGINE = "engine";
+        public static final String COLUMN_FAV = "fav";
         public static final String COLUMN_TITLE = "title";
         public static final String COLUMN_IMAGE = "image";
         public static final String COLUMN_DETAILS = "details";
@@ -158,8 +160,12 @@ public class Crawl extends Search {
     }
 
     public static class CrawlDbHelper extends SQLiteOpenHelper {
-        public static final int DATABASE_VERSION = 2;
+        public static final int DATABASE_VERSION = 3;
         public static final String DATABASE_NAME = "crawl.db";
+
+        public static String FAVS = CrawlEntry.COLUMN_ENGINE + " = ? and " + CrawlEntry.COLUMN_FAV + " = 1";
+        public static String WORDMATCHES = IndexEntry.TABLE_NAME + "." + IndexEntry.COL_ENGINE + " = ? AND " + IndexEntry.COL_WORD + " MATCH ?";
+        public static String INDEXQUERY = IndexEntry.TABLE_NAME + " INNER JOIN " + CrawlEntry.TABLE_NAME + " ON " + IndexEntry.TABLE_NAME + "." + IndexEntry.COL_CRAWL + "=" + CrawlEntry.TABLE_NAME + "." + CrawlEntry._ID;
 
         public static final String FTS_TABLE_CREATE =
                 "CREATE VIRTUAL TABLE " + IndexEntry.TABLE_NAME +
@@ -175,6 +181,7 @@ public class Crawl extends Search {
                 "CREATE TABLE " + CrawlEntry.TABLE_NAME + " (" +
                         CrawlEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT" + COMMA_SEP +
                         CrawlEntry.COLUMN_ENGINE + TEXT_TYPE + COMMA_SEP +
+                        CrawlEntry.COLUMN_FAV + LONG_TYPE + COMMA_SEP +
                         CrawlEntry.COLUMN_TITLE + TEXT_TYPE + COMMA_SEP +
                         CrawlEntry.COLUMN_IMAGE + TEXT_TYPE + COMMA_SEP +
                         CrawlEntry.COLUMN_DETAILS + TEXT_TYPE + COMMA_SEP +
@@ -209,6 +216,10 @@ public class Crawl extends Search {
                 db.execSQL("ALTER TABLE " + CrawlEntry.TABLE_NAME + " ADD COLUMN " + CrawlEntry.COLUMN_DOWNLOADS_TOTAL + " " + LONG_TYPE + " ;");
                 cur = 2;
             }
+            if (cur == 2) { // 2 --> 3
+                db.execSQL("ALTER TABLE " + CrawlEntry.TABLE_NAME + " ADD COLUMN " + CrawlEntry.COLUMN_FAV + " " + LONG_TYPE + " ;");
+                cur = 3;
+            }
 //            db.execSQL(SQL_DELETE_ENTRIES);
 //            db.execSQL("DROP TABLE IF EXISTS " + IndexEntry.TABLE_NAME);
 //            onCreate(db);
@@ -234,6 +245,7 @@ public class Crawl extends Search {
             SQLiteDatabase db = getWritableDatabase();
             ContentValues initialValues = new ContentValues();
             initialValues.put(CrawlEntry.COLUMN_ENGINE, engine);
+            initialValues.put(CrawlEntry.COLUMN_FAV, item.fav);
             initialValues.put(CrawlEntry.COLUMN_TITLE, item.title);
             initialValues.put(CrawlEntry.COLUMN_IMAGE, item.image);
             initialValues.put(CrawlEntry.COLUMN_DETAILS, item.details);
@@ -254,6 +266,8 @@ public class Crawl extends Search {
             long now = System.currentTimeMillis();
             SQLiteDatabase db = getWritableDatabase();
             ContentValues initialValues = new ContentValues();
+            if (item.fav != null)
+                initialValues.put(CrawlEntry.COLUMN_FAV, item.fav);
             if (item.image != null)
                 initialValues.put(CrawlEntry.COLUMN_IMAGE, item.image);
             if (item.details != null)
@@ -282,6 +296,7 @@ public class Crawl extends Search {
             SearchItem s = new SearchItem();
             s.search = ss;
             s.id = getLong(c, CrawlEntry._ID);
+            s.fav = getBoolean(c, CrawlEntry.COLUMN_FAV, false);
             s.title = getString(c, CrawlEntry.COLUMN_TITLE);
             s.image = getString(c, CrawlEntry.COLUMN_IMAGE);
             s.details = getString(c, CrawlEntry.COLUMN_DETAILS);
@@ -299,6 +314,24 @@ public class Crawl extends Search {
         public Cursor search(String engine, String order, int offset, int limit) {
             Cursor c = query(CrawlEntry.COLUMN_ENGINE + " = ?", new String[]{engine}, null, order, offset + ", " + limit);
             return c;
+        }
+
+        public Cursor favs(String engine, String order, int offset, int limit) {
+            Cursor c = query(FAVS, new String[]{engine}, null, order, offset + ", " + limit);
+            return c;
+        }
+
+        public long favsCount(String engine) {
+            return DatabaseUtils.queryNumEntries(getReadableDatabase(), CrawlEntry.TABLE_NAME, FAVS, new String[]{engine});
+        }
+
+        public void favsAllUpdate(String engine, boolean b) {
+            SQLiteDatabase db = getWritableDatabase();
+            ContentValues initialValues = new ContentValues();
+            initialValues.put(CrawlEntry.COLUMN_FAV, b);
+            String where = CrawlEntry.COLUMN_ENGINE + " = ?";
+            String[] args = new String[]{engine};
+            db.update(CrawlEntry.TABLE_NAME, initialValues, where, args);
         }
 
         public Cursor exist(String engine, SearchItem item) {
@@ -322,8 +355,7 @@ public class Crawl extends Search {
             SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
             builder.setTables(CrawlEntry.TABLE_NAME);
 
-            Cursor cursor = builder.query(getReadableDatabase(),
-                    columns, selection, selectionArgs, null, null, order, limit);
+            Cursor cursor = builder.query(getReadableDatabase(), columns, selection, selectionArgs, null, null, order, limit);
 
             if (cursor == null) {
                 return null;
@@ -334,7 +366,6 @@ public class Crawl extends Search {
             return cursor;
         }
 
-
         public long addWord(String engine, String words, long definition) {
             SQLiteDatabase db = getWritableDatabase();
             ContentValues initialValues = new ContentValues();
@@ -344,7 +375,7 @@ public class Crawl extends Search {
             return db.insert(IndexEntry.TABLE_NAME, null, initialValues);
         }
 
-        public Cursor getWordMatches(String engine, String query, String[] columns, String order, int offset, int limit) {
+        public String getWordMatchesQuery(String query) {
             String[] qq = query.split("\\s+");
             String s = "";
 
@@ -352,17 +383,32 @@ public class Crawl extends Search {
                 s += q + "*" + " ";
             }
 
-            String selection = IndexEntry.TABLE_NAME + "." + IndexEntry.COL_ENGINE + " = ? AND " + IndexEntry.COL_WORD + " MATCH ?";
-            String[] selectionArgs = new String[]{engine, s};
-            return queryIndex(selection, selectionArgs, columns, order, offset + ", " + limit);
+            return s;
+        }
+
+        public Cursor getWordMatches(String engine, String query, String[] columns, String order, int offset, int limit) {
+            String[] selectionArgs = new String[]{engine, getWordMatchesQuery(query)};
+            return queryIndex(WORDMATCHES, selectionArgs, columns, order, offset + ", " + limit);
+        }
+
+        public long getWordMatchesCount(String engine, String query) {
+            return DatabaseUtils.queryNumEntries(getReadableDatabase(), IndexEntry.TABLE_NAME, WORDMATCHES, new String[]{engine, getWordMatchesQuery(query)});
+        }
+
+        public void favsWordMatchesUpdate(String engine, String query, boolean b) {
+            String[] selectionArgs = new String[]{b ? "1" : "0", engine, getWordMatchesQuery(query)};
+            SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+            builder.setTables(INDEXQUERY);
+            String sql = "update " + CrawlEntry.TABLE_NAME + " set fav = ? where _id in (select _id from " + INDEXQUERY + " where " + WORDMATCHES + ")";
+            SQLiteDatabase db = getWritableDatabase();
+            db.execSQL(sql, selectionArgs);
         }
 
         private Cursor queryIndex(String selection, String[] selectionArgs, String[] columns, String order, String limit) {
             SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
-            builder.setTables(IndexEntry.TABLE_NAME + " INNER JOIN " + CrawlEntry.TABLE_NAME + " ON " + IndexEntry.TABLE_NAME + "." + IndexEntry.COL_CRAWL + "=" + CrawlEntry.TABLE_NAME + "." + CrawlEntry._ID);
+            builder.setTables(INDEXQUERY);
 
-            Cursor cursor = builder.query(getReadableDatabase(),
-                    columns, selection, selectionArgs, null, null, order, limit);
+            Cursor cursor = builder.query(getReadableDatabase(), columns, selection, selectionArgs, null, null, order, limit);
 
             if (cursor == null) {
                 return null;
@@ -418,7 +464,6 @@ public class Crawl extends Search {
 
     public Crawl(MainActivity m) {
         super(m);
-        db = new CrawlDbHelper(m);
         crawlHttp = new HttpProxyClient() {
             @Override
             protected CloseableHttpClient build(HttpClientBuilder builder) {
@@ -875,91 +920,8 @@ public class Crawl extends Search {
     }
 
     @Override
-    public void search(final Map<String, String> s, final String type, final String url, final String search, final Runnable done) {
-        String select = null;
-        String l = s.get("list");
-        if (l != null) {
-            select = l;
-            gridView = null;
-        }
-        String g = s.get("grid");
-        if (g != null) {
-            select = g;
-            LayoutInflater inflater = LayoutInflater.from(getContext());
-            gridView = inflater.inflate(R.layout.search_item_grid, grid, false);
-        }
-
-        if (select.equals("crawl")) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    gridUpdate();
-                    searchCrawl(s, search, url, done);
-                }
-            });
-        } else {
-            super.search(s, type, url, search, done);
-        }
-        return;
-    }
-
-    void searchCrawl(Map<String, String> s, String search, String order, final Runnable done) {
-        String next = null;
-        String nextText = null;
-
-        int count = 0;
-
-        if (search != null) {
-            search = search.toLowerCase(EN);
-            Cursor c = db.getWordMatches(engine.getName(), search, null, order, this.list.size(), CRAWL_SHOW + 1);
-            while (c != null) {
-                count++;
-                if (count > CRAWL_SHOW) {
-                    next = order;
-                    nextText = search;
-                    break;
-                }
-                SearchItem item = db.getSearchItem(s, c);
-                if (item != null)
-                    this.list.add(item);
-                if (!c.moveToNext())
-                    break;
-            }
-        } else {
-            Cursor c = db.search(engine.getName(), order, this.list.size(), CRAWL_SHOW + 1);
-            while (c != null) {
-                count++;
-                if (count > CRAWL_SHOW) {
-                    next = order;
-                    nextText = null;
-                    break;
-                }
-                SearchItem item = db.getSearchItem(s, c);
-                if (item != null)
-                    this.list.add(item);
-                if (!c.moveToNext())
-                    break;
-            }
-        }
-
-        this.next = next;
-        this.nextText = nextText;
-        this.nextSearch = s;
-
-        notifyDataSetChanged();
-
-        if (count > 0)
-            hideKeyboard();
-
-        if (done != null)
-            done.run();
-    }
-
-    @Override
     public void delete() {
         super.delete();
-        db.getWritableDatabase().delete(CrawlEntry.TABLE_NAME, CrawlEntry.COLUMN_ENGINE + " == ?", new String[]{engine.getName()});
-        db.getWritableDatabase().delete(IndexEntry.TABLE_NAME, IndexEntry.COL_ENGINE + " == ?", new String[]{engine.getName()});
     }
 
     void progressUpdate() {
@@ -982,5 +944,56 @@ public class Crawl extends Search {
     void detailsList(SearchItem item, Map<String, String> s, String url, String html) {
         super.detailsList(item, s, url, html);
         db.updateCrawl(item.id, item);
+    }
+
+    @Override
+    void updateFooterButtons() {
+        super.updateFooterButtons();
+        if (engine_favs != null && engine_favs != nextSearch) { // do not update favs tab
+            long c;
+            if (nextText == null) {
+                c = db.count(engine.getName());
+            } else {
+                c = db.getWordMatchesCount(engine.getName(), nextText);
+            }
+            TextView add = (TextView) footer_add.findViewById(R.id.search_footer_add_name);
+            add.setText(getContext().getString(R.string.footer_add_name, c));
+            TextView remove = (TextView) footer_remove.findViewById(R.id.search_footer_remove_name);
+            remove.setText(getContext().getString(R.string.footer_remove_name, c));
+        }
+    }
+
+    @Override
+    void footerAdd() {
+        if (engine_favs == nextSearch) {
+            super.footerAdd();
+        } else if (nextText == null) {
+            db.favsAllUpdate(engine.getName(), true);
+        } else {
+            db.favsWordMatchesUpdate(engine.getName(), nextText, true);
+        }
+        for (SearchItem item : list) {
+            item.fav = true;
+        }
+        updateFavCount();
+        notifyDataSetChanged();
+        updateFooterButtons();
+    }
+
+    @Override
+    void footerRemove() {
+        if (engine_favs == nextSearch) {
+            super.footerRemove();
+        } else if (nextText == null) {
+            db.favsAllUpdate(engine.getName(), false);
+        } else {
+            db.favsWordMatchesUpdate(engine.getName(), nextText, false);
+        }
+        for (SearchItem item : list) {
+            item.fav = false;
+        }
+        updateFavCount();
+        notifyDataSetChanged();
+        updateFooterButtons();
     }
 }

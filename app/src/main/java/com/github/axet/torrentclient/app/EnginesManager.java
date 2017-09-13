@@ -63,6 +63,20 @@ public class EnginesManager {
         return list.size();
     }
 
+    public int indexOf(Object o) {
+        for (int i = 0; i < list.size(); i++) {
+            Item a = list.get(i);
+            if (a.search == o)
+                return i;
+        }
+        return -1;
+    }
+
+    public void move(int i, int k) {
+        Item old = list.set(i, list.get(k));
+        list.set(k, old);
+    }
+
     public Search get(int i) {
         return list.get(i).search;
     }

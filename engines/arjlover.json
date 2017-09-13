@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "name": "arjlover.net",
   "home": {
     "get": "http://multiki.arjlover.net/"
@@ -54,6 +54,11 @@
     "_leech": "tr:nth-child(2) > td:nth-child(2):regex(.*Leechers:([0-9]+).*)"
   },
   "search": {
+    "get": "substr(date,-4,4)||case substr(date,-8,3) when 'Jan' then '01' when 'Feb' then '02' when 'Mar' then '03' when 'Apr' then '04' when 'May' then '05' when 'Jun' then '06' when 'Jul' then '07' when 'Aug' then '08' when 'Sep' then '09' when 'Oct' then '10' when 'Nov' then '11' when 'Dec' then '12' end ||substr('00'||trim(substr(date,1,2)),-2,2) desc",
+    "grid": "crawl",
+    "update": "details"
+  },
+  "favs": {
     "get": "substr(date,-4,4)||case substr(date,-8,3) when 'Jan' then '01' when 'Feb' then '02' when 'Mar' then '03' when 'Apr' then '04' when 'May' then '05' when 'Jun' then '06' when 'Jul' then '07' when 'Aug' then '08' when 'Sep' then '09' when 'Oct' then '10' when 'Nov' then '11' when 'Dec' then '12' end ||substr('00'||trim(substr(date,1,2)),-2,2) desc",
     "grid": "crawl",
     "update": "details"

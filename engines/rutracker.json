@@ -1,5 +1,5 @@
 {
-  "version": 17,
+  "version": 18,
   "name": "rutracker.org",
   "home": {
     "get": "http://rutracker.org"
@@ -49,6 +49,11 @@
     "seed": "b.seedmed",
     "leech": "td.leechmed b",
     "next": ".nav b+a:regex(.*href=\"([^\"]*)\".*)",
+    "update": "details"
+  },
+  "favs": {
+    "get": "'20'||substr(date,-2,2)||case substr(date,-6,3) when 'Янв' then '01' when 'Фев' then '02' when 'Мар' then '03' when 'Апр' then '04' when 'Май' then '05' when 'Июн' then '06' when 'Июл' then '07' when 'Авг' then '08' when 'Сен' then '09' when 'Окт' then '10' when 'Ноя' then '11' when 'Дек' then '12' end||substr('00'||trim(substr(date,0,3),'-'),-2,2) desc",
+    "grid": "crawl",
     "update": "details"
   }
 }
