@@ -41,5 +41,9 @@
     "seed": "td:eq(2):regex((.*))",
     "leech": "td:eq(3):regex((.*))",
     "next": "#content a[href^='/search']:has(img[src$='next.gif']):regex(.*href=\"([^\"]*).*)"
+  },
+  "favs": {
+    "get": "last desc",
+    "list": "crawl"
   }
 }

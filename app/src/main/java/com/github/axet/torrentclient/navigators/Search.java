@@ -76,6 +76,8 @@ import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.impl.client.HttpClientBuilder;
 import libtorrent.Libtorrent;
 
+import static com.github.axet.torrentclient.navigators.Crawl.CRAWL_SHOW;
+import static com.github.axet.torrentclient.navigators.Crawl.EN;
 import static com.github.axet.torrentclient.navigators.Crawl.getLong;
 
 public class Search extends BaseAdapter implements DialogInterface.OnDismissListener,
@@ -276,7 +278,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             this.search = s;
             this.base = url;
             this.html = html;
-            this.fav = false;
+            this.fav = false; // TODO add checkbox add new items to favs
             update(s, url, html);
         }
 
@@ -1009,6 +1011,9 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                 footer_add_text.setTag(c);
                 footer_remove_text.setText(getContext().getString(R.string.footer_remove_name, c));
                 footer_remove_text.setTag(c);
+            } else {
+                footer_add.setVisibility(View.INVISIBLE);
+                footer_remove.setVisibility(View.INVISIBLE);
             }
             footer_progress.setVisibility(View.GONE);
             footer_stop.setVisibility(View.GONE);
@@ -1629,7 +1634,19 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         }
     }
 
-    public void search(final Map<String, String> s, String type, String url, String search, final Runnable done) {
+    public void search(final Map<String, String> s, String type, final String url, final String search, final Runnable done) {
+        String select = gridUpdate(s);
+        if (select.equals("crawl")) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    gridUpdate();
+                    searchCrawl(s, search, url, done);
+                }
+            });
+            return;
+        }
+
         HttpClient.DownloadResponse html = null;
         String json = null;
 
@@ -2005,6 +2022,58 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         item.base = url;
     }
 
+    void searchCrawl(Map<String, String> s, String search, String order, final Runnable done) {
+        String next = null;
+        String nextText = null;
+
+        int count = 0;
+
+        if (search != null) {
+            search = search.toLowerCase(EN);
+            Cursor c = db.getWordMatches(engine.getName(), search, null, order, this.list.size(), CRAWL_SHOW + 1);
+            while (c != null) {
+                count++;
+                if (count > CRAWL_SHOW) {
+                    next = order;
+                    nextText = search;
+                    break;
+                }
+                SearchItem item = db.getSearchItem(s, c);
+                if (item != null)
+                    this.list.add(item);
+                if (!c.moveToNext())
+                    break;
+            }
+        } else {
+            Cursor c = db.search(engine.getName(), order, this.list.size(), CRAWL_SHOW + 1);
+            while (c != null) {
+                count++;
+                if (count > CRAWL_SHOW) {
+                    next = order;
+                    nextText = null;
+                    break;
+                }
+                SearchItem item = db.getSearchItem(s, c);
+                if (item != null)
+                    this.list.add(item);
+                if (!c.moveToNext())
+                    break;
+            }
+        }
+
+        this.next = next;
+        this.nextText = nextText;
+        this.nextSearch = s;
+
+        notifyDataSetChanged();
+
+        if (count > 0)
+            hideKeyboard();
+
+        if (done != null)
+            done.run();
+    }
+
     void favsLoad(Map<String, String> s, String order) {
         String select = gridUpdate(s);
         gridUpdate();
@@ -2032,6 +2101,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         this.next = next;
         this.nextText = nextText;
         this.nextSearch = s;
+        this.nextType = null;
 
         updateFooterButtons();
 

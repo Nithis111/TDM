@@ -42,5 +42,10 @@
     "grid": "crawl",
     "torrent_filter": "*.ogg",
     "update": "details"
+  },
+  "favs": {
+    "get": "date desc",
+    "grid": "crawl",
+    "update": "details"
   }
 }

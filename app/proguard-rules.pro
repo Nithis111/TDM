@@ -15,3 +15,9 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-dontobfuscate
+
+-dontwarn de.innosystec.unrar.**
+-dontwarn com.github.axet.wget.**
+-dontwarn org.apache.commons.**

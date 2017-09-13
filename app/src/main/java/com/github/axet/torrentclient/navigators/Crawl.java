@@ -245,7 +245,7 @@ public class Crawl extends Search {
             SQLiteDatabase db = getWritableDatabase();
             ContentValues initialValues = new ContentValues();
             initialValues.put(CrawlEntry.COLUMN_ENGINE, engine);
-            initialValues.put(CrawlEntry.COLUMN_FAV, 0); // TODO add checkbox add new items to favs
+            initialValues.put(CrawlEntry.COLUMN_FAV, item.fav);
             initialValues.put(CrawlEntry.COLUMN_TITLE, item.title);
             initialValues.put(CrawlEntry.COLUMN_IMAGE, item.image);
             initialValues.put(CrawlEntry.COLUMN_DETAILS, item.details);
@@ -917,75 +917,6 @@ public class Crawl extends Search {
         } else {
             super.search(s, search, done);
         }
-    }
-
-    @Override
-    public void search(final Map<String, String> s, final String type, final String url, final String search, final Runnable done) {
-        String select = gridUpdate(s);
-        if (select.equals("crawl")) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    gridUpdate();
-                    searchCrawl(s, search, url, done);
-                }
-            });
-        } else {
-            super.search(s, type, url, search, done);
-        }
-        return;
-    }
-
-    void searchCrawl(Map<String, String> s, String search, String order, final Runnable done) {
-        String next = null;
-        String nextText = null;
-
-        int count = 0;
-
-        if (search != null) {
-            search = search.toLowerCase(EN);
-            Cursor c = db.getWordMatches(engine.getName(), search, null, order, this.list.size(), CRAWL_SHOW + 1);
-            while (c != null) {
-                count++;
-                if (count > CRAWL_SHOW) {
-                    next = order;
-                    nextText = search;
-                    break;
-                }
-                SearchItem item = db.getSearchItem(s, c);
-                if (item != null)
-                    this.list.add(item);
-                if (!c.moveToNext())
-                    break;
-            }
-        } else {
-            Cursor c = db.search(engine.getName(), order, this.list.size(), CRAWL_SHOW + 1);
-            while (c != null) {
-                count++;
-                if (count > CRAWL_SHOW) {
-                    next = order;
-                    nextText = null;
-                    break;
-                }
-                SearchItem item = db.getSearchItem(s, c);
-                if (item != null)
-                    this.list.add(item);
-                if (!c.moveToNext())
-                    break;
-            }
-        }
-
-        this.next = next;
-        this.nextText = nextText;
-        this.nextSearch = s;
-
-        notifyDataSetChanged();
-
-        if (count > 0)
-            hideKeyboard();
-
-        if (done != null)
-            done.run();
     }
 
     @Override

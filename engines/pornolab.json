@@ -44,5 +44,9 @@
     "seed": "td.seedmed b",
     "leech": "td.leechmed b",
     "next": ".nav b+a:regex(.*href=\"([^\"]*)\".*)"
+  },
+  "favs": {
+    "get": "last desc",
+    "list": "crawl"
   }
 }
