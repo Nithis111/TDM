@@ -253,9 +253,9 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
 
                         String p = f.file.getPath();
                         f.fullPath = p;
-                        p = p.substring(torrentName.length() + 1);
-                        f.path = p;
-                        File file = new File(p);
+                        String fp = p.substring(torrentName.length() + 1);
+                        f.path = fp;
+                        File file = new File(fp);
                         String parent = file.getParent();
                         f.name = "./" + file.getName();
 
@@ -263,6 +263,7 @@ public class FilesFragment extends Fragment implements MainActivity.TorrentFragm
                             TorFolder folder = folders.get(parent);
                             if (folder == null) {
                                 folder = new TorFolder(t);
+                                folder.fullPath = new File(p).getParent();
                                 folder.path = parent;
                                 folder.name = folder.path;
                                 folder.expand = false;
