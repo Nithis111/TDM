@@ -114,7 +114,12 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     // search header
     View header;
     ViewGroup message_panel;
-    View message_close;
+    Runnable message_panel_progress = new Runnable() {
+        @Override
+        public void run() {
+            messageProgress();
+        }
+    };
     ProgressBar header_progress; // progressbar / button
     View header_stop; // stop image
     View header_search; // search button
@@ -557,6 +562,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         return "";
     }
 
+    @Override
     public void install(final HeaderGridView list) {
         this.grid = list;
 
@@ -643,7 +649,6 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         updateFooterButtons();
 
         message_panel = (ViewGroup) header.findViewById(R.id.search_header_message_panel);
-
         if (message.size() == 0) {
             message_panel.setVisibility(View.GONE);
         } else {
@@ -656,8 +661,10 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                 message_panel.addView(v);
                 TextView text = (TextView) v.findViewById(R.id.search_header_message_text);
                 text.setText(msg);
+                ProgressBar p = (ProgressBar) v.findViewById(R.id.search_header_progress);
+                p.setProgress(0);
 
-                message_close = v.findViewById(R.id.search_header_message_close);
+                View message_close = v.findViewById(R.id.search_header_message_close);
                 message_close.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View vv) {
@@ -673,6 +680,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                 });
             }
         }
+        messageProgress();
 
         searchText = (TextView) header.findViewById(R.id.search_header_text);
         header_search = header.findViewById(R.id.search_header_search);
@@ -870,6 +878,21 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         });
     }
 
+    void messageProgress() {
+        if (message_panel.getChildCount() == 0)
+            return;
+        View c = message_panel.getChildAt(0);
+        View message_close = c.findViewById(R.id.search_header_message_close);
+        ProgressBar v = (ProgressBar) c.findViewById(R.id.search_header_progress);
+        int p = v.getProgress();
+        p++;
+        v.setProgress(p);
+        if (p >= 100) {
+            message_close.performClick();
+        }
+        handler.postDelayed(message_panel_progress, 10);
+    }
+
     void updateFavCount() {
         toolbar_favs_name.setText("" + db.favsCount(engine.getName()));
     }
@@ -892,11 +915,13 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         grid.requestLayout();
     }
 
+    @Override
     public void remove(HeaderGridView list) {
         lastSearch = searchText.getText().toString();
         list.removeHeaderView(header);
         list.removeFooterView(footer);
         gridRestore();
+        handler.removeCallbacks(message_panel_progress);
     }
 
     void loadTops(final Map<String, String> top, final String type, Map<String, String> tops) {
