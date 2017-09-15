@@ -27,4 +27,12 @@
             android:tint="?attr/colorAccent"
             android:tintMode="?attr/colorAccent" />
     </FrameLayout>
+
+    <ProgressBar
+        android:id="@+id/search_header_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:layout_gravity="bottom"
+        android:progress="45" />
 </FrameLayout>
