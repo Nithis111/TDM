@@ -21,3 +21,6 @@
 -dontwarn de.innosystec.unrar.**
 -dontwarn com.github.axet.wget.**
 -dontwarn org.apache.commons.**
+
+-keep class go.** {*;}
+-keep class libtorrent.** {*;}
