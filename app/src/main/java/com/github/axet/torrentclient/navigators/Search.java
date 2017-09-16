@@ -902,7 +902,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             for (int i = 0; i < toolbar.getChildCount(); i++) {
                 View v = toolbar.getChildAt(i);
                 String t = (String) v.getTag();
-                if (t.equals(p)) {
+                if (t != null && t.equals(p)) {
                     v.performClick();
                 }
             }
