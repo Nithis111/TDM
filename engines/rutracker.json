@@ -2,7 +2,8 @@
   "version": 19,
   "name": "rutracker.org",
   "home": {
-    "get": "http://rutracker.org"
+    "get": "http://rutracker.org",
+    "default": "news"
   },
   "news": {
     "get": "http://rutracker.org/forum/viewforum.php?f=1960",

@@ -126,6 +126,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     TextView searchText;
 
     ViewGroup toolbar;
+    View toolbar_news;
+    View toolbar_favs;
     TextView toolbar_favs_name;
     int toolbarIndex = -1;
 
@@ -795,8 +797,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         }
 
         toolbar = (ViewGroup) header.findViewById(R.id.search_header_toolbar);
-        final View toolbar_news = header.findViewById(R.id.search_header_toolbar_news);
-        final View toolbar_favs = header.findViewById(R.id.search_header_toolbar_favs);
+        toolbar_news = header.findViewById(R.id.search_header_toolbar_news);
+        toolbar_favs = header.findViewById(R.id.search_header_toolbar_favs);
         toolbar_favs_name = (TextView) toolbar_favs.findViewById(R.id.search_header_toolbar_favs_name);
         final View toolbar_search = header.findViewById(R.id.search_header_toolbar_search);
         final Map<String, String> news = engine.getMap("news");
@@ -821,7 +823,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
             @Override
             public void onClick(View v) {
                 clearList();
-                selectToolbar(toolbar.findViewById(R.id.search_header_toolbar_news));
+                selectToolbar(toolbar_news);
                 request(new Runnable() {
                     @Override
                     public void run() {
@@ -876,6 +878,38 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                 imm.showSoftInputFromInputMethod(searchText.getWindowToken(), 0);
             }
         });
+
+        openDefaultInstall();
+    }
+
+    void openDefaultInstall() {
+        if (getCount() == 0)
+            openDefault();
+    }
+
+    void openDefault() {
+        Map<String, String> home = engine.getMap("home");
+        String d = home.get("default");
+        if (d == null || d.isEmpty())
+            return;
+        String[] dd = d.split("/");
+        String g = dd[0];
+        if (g.equals("news")) {
+            toolbar_news.performClick();
+        }
+        if (g.equals("tops")) {
+            String p = dd[1];
+            for (int i = 0; i < toolbar.getChildCount(); i++) {
+                View v = toolbar.getChildAt(i);
+                String t = (String) v.getTag();
+                if (t.equals(p)) {
+                    v.performClick();
+                }
+            }
+        }
+        if (g.equals("favs")) {
+            toolbar_favs.performClick();
+        }
     }
 
     void messageProgress() {
@@ -933,6 +967,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         for (String key : tops.keySet()) {
             final String url = tops.get(key);
             View v = inflater.inflate(R.layout.search_rating, null);
+            v.setTag(key);
             TextView text = (TextView) v.findViewById(R.id.search_header_toolbar_tops_name);
             text.setText(key);
             v.setOnClickListener(new View.OnClickListener() {

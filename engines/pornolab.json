@@ -2,7 +2,8 @@
   "version": 21,
   "name": "pornolab.net",
   "home": {
-    "get": "http://pornolab.net"
+    "get": "http://pornolab.net",
+    "default": "news"
   },
   "news": {
     "get": "http://pornolab.net/forum/viewforum.php?f=15",

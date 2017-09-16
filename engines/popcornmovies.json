@@ -2,7 +2,8 @@
   "version": 18,
   "name": "PopcornTime Movies",
   "home": {
-    "get": "https://popcorntime.sh"
+    "get": "https://popcorntime.sh",
+    "default": "tops/Home"
   },
   "news": {
     "get": "https://blog.popcorntime.sh",

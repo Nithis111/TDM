@@ -2,7 +2,8 @@
   "version": 19,
   "name": "PopcornTime Shows",
   "home": {
-    "get": "https://popcorntime.sh"
+    "get": "https://popcorntime.sh",
+    "default": "tops/Home"
   },
   "news": {
     "get": "https://blog.popcorntime.sh",

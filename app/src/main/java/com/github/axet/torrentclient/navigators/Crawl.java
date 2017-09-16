@@ -549,6 +549,10 @@ public class Crawl extends Search {
     }
 
     @Override
+    void openDefaultInstall() {
+    }
+
+    @Override
     public void remove(HeaderGridView list) {
         super.remove(list);
         crawlStop();
@@ -601,7 +605,7 @@ public class Crawl extends Search {
             return;
         }
 
-        if (s != null) {
+        if (s != null) { // we have another url to check
             crawlsTopIndex = 0;
             crawlThread = new Thread(new Runnable() {
                 @Override
@@ -616,9 +620,11 @@ public class Crawl extends Search {
                     crawlDelay();
                 }
             }, "Crawl Thread");
-        } else {
+        } else { // no next url, end?
             if (crawlsTopIndex >= crawlsTop.size()) {
                 main.getEngines().save(); // all jobs done, save state
+                if (getCount() == 0)
+                    openDefault(); // open default tab
                 return;
             }
             final State t = crawlsTop.get(crawlsTopIndex);

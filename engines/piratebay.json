@@ -2,7 +2,8 @@
   "version": 11,
   "name": "The Pirate Bay",
   "home": {
-    "get": "https://thepiratebay.org/"
+    "get": "https://thepiratebay.org/",
+    "default": "news"
   },
   "news": {
     "get": "https://thepiratebay.org/blog",

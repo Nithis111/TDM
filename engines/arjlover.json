@@ -2,7 +2,8 @@
   "version": 8,
   "name": "arjlover.net",
   "home": {
-    "get": "http://multiki.arjlover.net/"
+    "get": "http://multiki.arjlover.net/",
+    "default": "tops/Recent"
   },
   "news": {
     "get": "http://multiki.arjlover.net/",
