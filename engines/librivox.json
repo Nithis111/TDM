@@ -2,7 +2,8 @@
   "version": 10,
   "name": "librivox.org",
   "home": {
-    "get": "http://librivox.org"
+    "get": "http://librivox.org",
+    "default": "tops/Recent"
   },
   "news": {
     "get": "https://librivox.org/category/blog/",
@@ -31,7 +32,7 @@
     "update": "details"
   },
   "tops": {
-    "Recents": "last/3600000 desc, date desc"
+    "Recent": "last/3600000 desc, date desc"
   },
   "details": {
 	"date":".product-details > dd:nth-child(6)",

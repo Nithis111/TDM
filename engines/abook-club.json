@@ -2,7 +2,8 @@
   "version": 7,
   "name": "abook-club.ru",
   "home": {
-    "get": "http://abook-club.ru"
+    "get": "http://abook-club.ru",
+    "default": "tops/Recent"
   },
   "news": {
     "get": "http://abook-club.ru/club_news/#expand_all",
