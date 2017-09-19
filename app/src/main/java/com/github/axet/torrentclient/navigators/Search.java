@@ -535,10 +535,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                 Cookie c = (Cookie) oos.readObject();
                 cookieStore.addCookie(c);
             }
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            Log.d(TAG, "bad cookie", e); // ignore restoring cookies
         }
     }
 

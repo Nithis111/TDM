@@ -58,7 +58,7 @@
             android:tint="?attr/colorAccent" />
     </LinearLayout>
 
-    <com.github.axet.androidlibrary.widgets.PathMax
+    <com.github.axet.androidlibrary.widgets.TextMax
         android:id="@+id/status_details_status_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -72,7 +72,7 @@
             android:layout_height="wrap_content"
             android:text="status..."
             android:textSize="10dp" />
-    </com.github.axet.androidlibrary.widgets.PathMax>
+    </com.github.axet.androidlibrary.widgets.TextMax>
 
     <!--<WebView-->
     <!--android:id="@+id/webview"-->
