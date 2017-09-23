@@ -525,6 +525,10 @@ public class TorrentPlayer {
         public int getPercent() {
             return (int) (tor.file.getBytesCompleted() * 100 / tor.file.getLength());
         }
+
+        public String toString() {
+            return getName();
+        }
     }
 
     public TorrentPlayer(Context context, Storage storage, long t) {
@@ -616,6 +620,7 @@ public class TorrentPlayer {
     }
 
     public boolean open(PlayerFile f) {
+        Log.d(TAG, "open " + f);
         final int i = files.indexOf(f);
         if (player != null) {
             player.release();
@@ -741,6 +746,7 @@ public class TorrentPlayer {
         this.next = new Runnable() {
             @Override
             public void run() {
+                Log.d(TAG, "next " + next);
                 TorrentPlayer.this.next = null;
                 if (next >= files.size()) {
                     stop();
@@ -785,6 +791,7 @@ public class TorrentPlayer {
     }
 
     public void stop() {
+        Log.d(TAG, "stop");
         if (player != null) {
             player.setPlayWhenReady(false);
         }
