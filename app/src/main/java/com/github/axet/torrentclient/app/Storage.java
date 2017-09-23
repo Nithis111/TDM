@@ -1,7 +1,6 @@
 package com.github.axet.torrentclient.app;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -23,20 +22,17 @@ import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.util.Base64;
 import android.util.Log;
-import android.webkit.MimeTypeMap;
 
 import com.github.axet.androidlibrary.app.AlarmManager;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.services.TorrentService;
 import com.github.axet.wget.SpeedInfo;
 
-import org.apache.commons.io.FileUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -1098,14 +1094,27 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
         if (Build.VERSION.SDK_INT >= 21 && s.startsWith(ContentResolver.SCHEME_CONTENT)) {
             try {
                 Uri u = child(t.path, path);
-                ParcelFileDescriptor fd = resolver.openFileDescriptor(u, "rw"); // rw to make it file request (r or w can be a pipes)
-                FileInputStream fis = new FileInputStream(fd.getFileDescriptor());
-                FileChannel c = fis.getChannel();
-                c.position(off);
                 ByteBuffer bb = ByteBuffer.allocate((int) buf.length());
-                c.read(bb);
-                long l = c.position() - off;
-                c.close();
+                long l;
+                try {
+                    ParcelFileDescriptor fd = resolver.openFileDescriptor(u, "r");
+                    FileInputStream fis = new FileInputStream(fd.getFileDescriptor());
+                    FileChannel c = fis.getChannel();
+                    c.position(off);
+                    c.read(bb);
+                    l = c.position() - off;
+                    fis.close(); // c will be closed, fd is not
+                    fd.close();
+                } catch (IOException | IllegalArgumentException e) { // ignore exception, ParcelFileDescriptor maybe a pipe
+                    ParcelFileDescriptor fd = resolver.openFileDescriptor(u, "rw"); // rw to make it file request (r or w can be a pipes)
+                    FileInputStream fis = new FileInputStream(fd.getFileDescriptor());
+                    FileChannel c = fis.getChannel();
+                    c.position(off);
+                    c.read(bb);
+                    l = c.position() - off;
+                    fis.close(); // c will be closed, fd is not
+                    fd.close();
+                }
                 bb.flip();
                 buf.write(bb.array(), 0, l);
                 return l;
@@ -1165,12 +1174,14 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
                 ByteBuffer bb = ByteBuffer.wrap(buf);
                 c.write(bb);
                 long l = c.position() - off;
-                c.close();
+                fos.close(); // c will be closed, fd is not
+                fd.close();
                 return l;
             } else if (s.startsWith(ContentResolver.SCHEME_FILE)) {
                 File f = new File(t.path.getPath(), path);
                 File p = f.getParentFile();
-                p.mkdirs();
+                if (!p.exists() && !p.mkdirs())
+                    throw new IOException("unable to create dir");
                 RandomAccessFile r = new RandomAccessFile(f, "rw");
                 r.seek(off);
                 r.write(buf);
