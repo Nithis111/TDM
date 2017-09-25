@@ -300,7 +300,14 @@ public class BrowserDialogFragment extends DialogFragment implements MainActivit
                     onPageLoaded(html);
                 return html;
             }
+
+            @Override
+            public boolean onCheckIsTextEditor() {
+                return true;
+            }
         };
+        web.setFocusable(true);
+        web.setFocusableInTouchMode(true);
 
         web.setInject(script);
         web.setInjectPost(script_post);
