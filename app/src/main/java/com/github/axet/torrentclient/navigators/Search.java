@@ -86,6 +86,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     public static final String TAG = Search.class.getSimpleName();
 
     public static String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36";
+    public static int MESSAGE_AUTOCLOSE = 5; // seconds
 
     Context context;
     MainActivity main;
@@ -661,8 +662,9 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                 message_panel.addView(v);
                 TextView text = (TextView) v.findViewById(R.id.search_header_message_text);
                 text.setText(msg);
-                ProgressBar p = (ProgressBar) v.findViewById(R.id.search_header_progress);
+                ProgressBar p = (ProgressBar) v.findViewById(R.id.search_header_message_progress);
                 p.setProgress(0);
+                p.setTag(0);
 
                 View message_close = v.findViewById(R.id.search_header_message_close);
                 message_close.setOnClickListener(new View.OnClickListener() {
@@ -911,18 +913,21 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     }
 
     void messageProgress() {
+        final int DELAY = 10;
         if (message_panel.getChildCount() == 0)
             return;
         View c = message_panel.getChildAt(0);
         View message_close = c.findViewById(R.id.search_header_message_close);
-        ProgressBar v = (ProgressBar) c.findViewById(R.id.search_header_progress);
-        int p = v.getProgress();
-        p++;
+        ProgressBar v = (ProgressBar) c.findViewById(R.id.search_header_message_progress);
+        int t = (int) v.getTag();
+        t++;
+        int p = t * DELAY * 100 / MESSAGE_AUTOCLOSE / 1000;
+        v.setTag(t);
         v.setProgress(p);
         if (p >= 100) {
             message_close.performClick();
         }
-        handler.postDelayed(message_panel_progress, 10);
+        handler.postDelayed(message_panel_progress, DELAY);
     }
 
     void updateFavCount() {
