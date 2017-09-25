@@ -29,7 +29,7 @@
     </FrameLayout>
 
     <ProgressBar
-        android:id="@+id/search_header_progress"
+        android:id="@+id/search_header_message_progress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="5dp"
