@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "name": "great78.archive.org",
   "home": {
     "get": "http://great78.archive.org",
@@ -26,8 +26,8 @@
     "torrent_filter": "*.mp3"
   },
   "tops": {
-    "Views": "https://archive.org/details/78rpm?and[]=mediatype%3A%22audio%22&sort=-downloads",
-    "Recent": "https://archive.org/details/78rpm?and[]=mediatype%3A%22audio%22&sort=-publicdate"
+    "Recent": "https://archive.org/details/78rpm?and[]=mediatype%3A%22audio%22&sort=-publicdate",
+    "Top": "https://archive.org/details/78rpm?and[]=mediatype%3A%22audio%22&sort=-downloads"
   },
   "details": {
     "downloads": "div.col-sm-4 > div:nth-child(3) > div:nth-child(6)",
