@@ -566,6 +566,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     @Override
     public void install(final HeaderGridView list) {
         this.grid = list;
+        this.gridView = null;
 
         list.setAdapter(null); // old phones crash to addHeader
 
@@ -935,6 +936,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     }
 
     void gridUpdate() {
+        if (grid == null) // after remove() do not update grid but Search.adapter
+            return;
         if (gridView != null) {
             grid.setNumColumns(GridView.AUTO_FIT);
             grid.setColumnWidth(gridView.getLayoutParams().width);
@@ -954,12 +957,15 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
 
     @Override
     public void remove(HeaderGridView list) {
-        requestCancel();
+        handler.removeCallbacks(message_panel_progress);
         lastSearch = searchText.getText().toString();
         list.removeHeaderView(header);
         list.removeFooterView(footer);
-        gridRestore();
-        handler.removeCallbacks(message_panel_progress);
+        if (grid != null) {
+            gridRestore();
+            grid = null;
+        }
+        gridView = null;
     }
 
     void loadTops(final Map<String, String> top, final String type, Map<String, String> tops) {
@@ -1699,7 +1705,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
     }
 
     public void search(final Map<String, String> s, String type, final String url, final String search, final Runnable done) {
-        String select = gridUpdate(s);
+        final String select = gridUpdate(s);
         if (select.equals("crawl")) {
             handler.post(new Runnable() {
                 @Override
