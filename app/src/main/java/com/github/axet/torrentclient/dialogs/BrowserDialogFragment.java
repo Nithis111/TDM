@@ -301,6 +301,10 @@ public class BrowserDialogFragment extends DialogFragment implements MainActivit
                 return html;
             }
 
+            // https://stackoverflow.com/questions/4200259/tapping-form-field-in-webview-does-not-show-soft-keyboard
+            //
+            // android:focusable="true"
+            // android:focusableInTouchMode="true"
             @Override
             public boolean onCheckIsTextEditor() {
                 return true;
