@@ -954,6 +954,7 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
 
     @Override
     public void remove(HeaderGridView list) {
+        requestCancel();
         lastSearch = searchText.getText().toString();
         list.removeHeaderView(header);
         list.removeFooterView(footer);
