@@ -898,19 +898,7 @@ public class Crawl extends Search {
 
     @Override
     public void search(final Map<String, String> s, final String search, final Runnable done) {
-        String select = null;
-        String l = s.get("list");
-        if (l != null) {
-            select = l;
-            gridView = null;
-        }
-        String g = s.get("grid");
-        if (g != null) {
-            select = g;
-            LayoutInflater inflater = LayoutInflater.from(getContext());
-            gridView = inflater.inflate(R.layout.search_item_grid, grid, false);
-        }
-
+        String select = gridUpdate(s);
         if (select.equals("crawl")) {
             final String url = s.get("get");
             handler.post(new Runnable() {
