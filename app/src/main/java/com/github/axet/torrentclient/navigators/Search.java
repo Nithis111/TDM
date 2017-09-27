@@ -869,6 +869,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
 
         list.setAdapter(this);
 
+        if (nextSearch != null)
+            gridUpdate(nextSearch);
         gridUpdate();
 
         handler.post(new Runnable() {
