@@ -85,8 +85,8 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
         SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String TAG = Search.class.getSimpleName();
 
-    public static String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36";
     public static int MESSAGE_AUTOCLOSE = 5; // seconds
+    public static String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36";
 
     Context context;
     MainActivity main;
