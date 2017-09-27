@@ -144,7 +144,7 @@ public class BrowserDialogFragment extends DialogFragment implements MainActivit
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        return new AlertDialog.Builder(getActivity())
+        AlertDialog d = new AlertDialog.Builder(getActivity())
                 .setNeutralButton(getContext().getString(R.string.close),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
@@ -154,6 +154,7 @@ public class BrowserDialogFragment extends DialogFragment implements MainActivit
                 )
                 .setView(createView(LayoutInflater.from(getContext()), null, savedInstanceState))
                 .create();
+        return d;
     }
 
     @Nullable
@@ -310,8 +311,6 @@ public class BrowserDialogFragment extends DialogFragment implements MainActivit
                 return true;
             }
         };
-        web.setFocusable(true);
-        web.setFocusableInTouchMode(true);
 
         web.setInject(script);
         web.setInjectPost(script_post);
@@ -331,6 +330,8 @@ public class BrowserDialogFragment extends DialogFragment implements MainActivit
         params.addRule(RelativeLayout.ABOVE, R.id.status_details_status_group);
         web.setLayoutParams(params);
         r.addView(web);
+        r.setFocusable(true);
+        r.setFocusableInTouchMode(true);
 
         progress.setOnClickListener(new View.OnClickListener() {
             @Override
