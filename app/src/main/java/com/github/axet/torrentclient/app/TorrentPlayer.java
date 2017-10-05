@@ -553,6 +553,8 @@ public class TorrentPlayer {
     }
 
     public void update() {
+        Uri old = playingUri;
+
         torrentName = torrent.name();
         torrentHash = torrent.hash;
 
@@ -589,6 +591,13 @@ public class TorrentPlayer {
                 }
             }
         }
+
+        if (old == null)
+            return;
+        TorrentPlayer.PlayerFile f = find(old);
+        if (f == null)
+            return;
+        playingIndex = files.indexOf(f);
     }
 
     public int getSize() {
