@@ -595,6 +595,7 @@ public class TorrentPlayer {
         if (old == null)
             return;
         TorrentPlayer.PlayerFile f = find(old);
+        playingIndex = -1;
         if (f == null)
             return;
         playingIndex = files.indexOf(f);
