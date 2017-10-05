@@ -642,7 +642,7 @@ public class TorrentPlayer {
         playingFile = f;
         if (f.tor.file.getBytesCompleted() == f.tor.file.getLength()) {
             if (!skipType(f)) {
-                prepare(f.uri, i);
+                prepare(f.uri);
             }
         }
         if (player == null) {
@@ -686,7 +686,7 @@ public class TorrentPlayer {
         video = -1; // do not close player, keep seek progress
     }
 
-    void prepare(Uri u, final int i) {
+    void prepare(Uri u) {
         player = ExoPlayerFactory.newSimpleInstance(context, trackSelector);
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context, Util.getUserAgent(context, context.getString(R.string.app_name)));
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
@@ -711,12 +711,12 @@ public class TorrentPlayer {
                     ; // getDuration();
                 }
                 if (playbackState == ExoPlayer.STATE_ENDED)
-                    next(i + 1);
+                    next(playingIndex + 1);
             }
 
             @Override
             public void onPlayerError(ExoPlaybackException error) {
-                next(i + 1);
+                next(playingIndex + 1);
             }
 
             @Override
@@ -737,7 +737,7 @@ public class TorrentPlayer {
             seek = player.getCurrentPosition();
             player.release();
         }
-        prepare(playingUri, playingIndex);
+        prepare(playingUri);
         view.setPlayer(player);
         if (seek != null)
             player.seekTo(seek);
