@@ -27,6 +27,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.Adapter;
@@ -118,6 +119,22 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
     View fab_stop;
     TextView fab_status;
     Storage storage;
+
+    public static void showLocked(Window w) {
+        w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+    }
+
+    public static void updateLocked(Window w) {
+        Context context = w.getContext();
+        KeyguardManager myKM = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+        if (myKM.inKeyguardRestrictedInputMode()) {
+            w.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); // when locked - show it fullscreen allow keyboard to popup
+        } else {
+            w.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); // when unlocked - show normal window
+        }
+    }
 
     public static void startActivity(Context context) {
         Intent i = new Intent(context, MainActivity.class);
@@ -245,9 +262,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
             }
         });
 
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        showLocked(getWindow());
 
         progress = (ProgressBar) findViewById(R.id.progress);
 
@@ -658,6 +673,8 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
 
         // update if keyguard enabled or not
         drawer.updateManager();
+
+        updateLocked(getWindow());
 
         KeyguardManager myKM = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
         if (myKM.inKeyguardRestrictedInputMode()) {
