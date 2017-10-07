@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
@@ -154,6 +155,11 @@ public class BrowserDialogFragment extends DialogFragment implements MainActivit
                 )
                 .setView(createView(LayoutInflater.from(getContext()), null, savedInstanceState))
                 .create();
+
+        Window w = d.getWindow();
+        MainActivity.showLocked(w);
+        MainActivity.updateLocked(w);
+
         return d;
     }
 
