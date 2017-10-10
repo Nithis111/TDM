@@ -686,7 +686,7 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
                                     infoThread = null;
                                 }
                             });
-                        } catch (RuntimeException e) {
+                        } catch (Exception e) {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
