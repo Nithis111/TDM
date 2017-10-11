@@ -365,11 +365,10 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
                 .withIdentifier(R.string.menu_settings)
                 .withName(R.string.menu_settings));
 
-        AddDrawerItem item = new AddDrawerItem() {
+        AddDrawerItem navadd = new AddDrawerItem() {
             @Override
             public void bindView(ViewHolder viewHolder) {
                 super.bindView(viewHolder);
-
                 viewHolder.update.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -401,14 +400,15 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
                     viewHolder.refresh.setColorFilter(ThemeUtils.getThemeColor(context, R.attr.colorAccent));
                     viewHolder.update.setEnabled(true);
                 }
+                withEnabled(!locked);
             }
         };
-        item.withIdentifier(R.id.nav_add)
+        navadd.withIdentifier(R.id.nav_add)
                 .withName(R.string.add_search_engine)
                 .withIcon(R.drawable.ic_add_black_24dp)
                 .withIconTintingEnabled(true)
                 .withSelectable(false);
-        list.add(item);
+        list.add(navadd);
 
         update(list);
     }

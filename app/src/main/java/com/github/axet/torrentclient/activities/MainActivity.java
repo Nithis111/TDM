@@ -124,16 +124,9 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-    }
-
-    public static void updateLocked(Window w) {
-        Context context = w.getContext();
-        KeyguardManager myKM = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
-        if (myKM.inKeyguardRestrictedInputMode()) {
-            w.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); // when locked - show it fullscreen allow keyboard to popup
-        } else {
-            w.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); // when unlocked - show normal window
-        }
+        // enable popup keyboard
+        w.addFlags(android.view.WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+        w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
     }
 
     public static void startActivity(Context context) {
@@ -673,8 +666,6 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
 
         // update if keyguard enabled or not
         drawer.updateManager();
-
-        updateLocked(getWindow());
 
         KeyguardManager myKM = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
         if (myKM.inKeyguardRestrictedInputMode()) {

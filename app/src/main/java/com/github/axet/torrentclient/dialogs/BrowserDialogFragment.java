@@ -158,7 +158,6 @@ public class BrowserDialogFragment extends DialogFragment implements MainActivit
 
         Window w = d.getWindow();
         MainActivity.showLocked(w);
-        MainActivity.updateLocked(w);
 
         return d;
     }
