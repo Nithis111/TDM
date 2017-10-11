@@ -352,7 +352,6 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        MainActivity.updateLocked(getWindow());
     }
 
     @Override
