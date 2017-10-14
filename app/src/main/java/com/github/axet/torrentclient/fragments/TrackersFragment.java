@@ -168,7 +168,7 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
         for (int k = 0; k < Libtorrent.torrentWebSeedsCount(t); k++) {
             webseeds.add(Libtorrent.torrentWebSeeds(t, k));
         }
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, webseeds);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, webseeds);
         webSeeds.setAdapter(adapter);
         if (webseeds.size() == 0) {
             webSeedsText.setVisibility(View.GONE);
