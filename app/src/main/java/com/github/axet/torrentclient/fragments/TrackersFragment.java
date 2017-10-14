@@ -2,12 +2,15 @@ package com.github.axet.torrentclient.fragments;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -25,6 +28,8 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
     View v;
     View header;
 
+    View webSeedsText;
+    ListView webSeeds;
     TextView dhtLast;
     TextView pex;
     TextView lpd;
@@ -155,6 +160,20 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
                 e.show();
             }
         });
+
+        webSeedsText = v.findViewById(R.id.trackers_webseeds_text);
+        webSeeds = (ListView) v.findViewById(R.id.trackers_webseeds);
+
+        ArrayList<String> webseeds = new ArrayList<>();
+        for (int k = 0; k < Libtorrent.torrentWebSeedsCount(t); k++) {
+            webseeds.add(Libtorrent.torrentWebSeeds(t, k));
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, webseeds);
+        webSeeds.setAdapter(adapter);
+        if (webseeds.size() == 0) {
+            webSeedsText.setVisibility(View.GONE);
+            webSeeds.setVisibility(View.GONE);
+        }
 
         update();
 
