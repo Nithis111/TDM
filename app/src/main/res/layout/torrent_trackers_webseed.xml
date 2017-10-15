@@ -36,11 +36,11 @@
 
     <TextView
         android:id="@+id/webseed_error"
-        android:textColor="?android:attr/textColorSecondary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginLeft="10dp"
         android:text="error code"
+        android:textColor="@android:color/holo_red_dark"
         android:textSize="12sp" />
 </LinearLayout>
