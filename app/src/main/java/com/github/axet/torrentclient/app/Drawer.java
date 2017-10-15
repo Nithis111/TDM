@@ -353,7 +353,7 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
             item.withTag(search);
             item.withName(engine.getName());
             item.withIconTintingEnabled(true);
-            item.withIcon(new UnreadCountDrawable(context, R.drawable.ic_share_black_24dp, search));
+            item.withIcon(new UnreadCountDrawable(context, R.drawable.ic_drag_handle_black_24dp, search));
             item.withSelectable(true);
             item.withSetSelected(main.active(search));
             list.add(item);
