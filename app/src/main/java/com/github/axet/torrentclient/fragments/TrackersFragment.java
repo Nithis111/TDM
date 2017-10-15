@@ -1,9 +1,12 @@
 package com.github.axet.torrentclient.fragments;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,9 +23,11 @@ import com.github.axet.torrentclient.activities.MainActivity;
 import com.github.axet.torrentclient.app.MainApplication;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import libtorrent.Libtorrent;
 import libtorrent.Tracker;
+import libtorrent.WebSeed;
 
 public class TrackersFragment extends Fragment implements MainActivity.TorrentFragmentInterface {
     View v;
@@ -30,16 +35,19 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
 
     View webSeedsText;
     ListView webSeeds;
+    WebSeedsAdapter ws;
     TextView dhtLast;
     TextView pex;
     TextView lpd;
     View add;
+    View empty;
 
-    ArrayList<Tracker> ff = new ArrayList<>();
     Files files;
     ListView list;
 
     class Files extends BaseAdapter {
+        ArrayList<Tracker> ff = new ArrayList<>();
+
         @Override
         public int getCount() {
             return ff.size();
@@ -53,6 +61,11 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
         @Override
         public long getItemId(int i) {
             return i;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false; // show header if list empty
         }
 
         @Override
@@ -120,22 +133,78 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
         }
     }
 
+    class WebSeedsAdapter extends BaseAdapter {
+        ArrayList<WebSeed> webseeds = new ArrayList<>();
+
+        public WebSeedsAdapter() {
+            final long t = getArguments().getLong("torrent");
+            for (int k = 0; k < Libtorrent.torrentWebSeedsCount(t); k++) {
+                WebSeed ws = Libtorrent.torrentWebSeeds(t, k);
+                webseeds.add(ws);
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return webseeds.size();
+        }
+
+        @Override
+        public WebSeed getItem(int i) {
+            return webseeds.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return i;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false; // show header if list empty
+        }
+
+        @Override
+        public View getView(final int i, View view, ViewGroup viewGroup) {
+            LayoutInflater inflater = LayoutInflater.from(getContext());
+
+            if (view == null) {
+                view = inflater.inflate(R.layout.torrent_trackers_webseed, viewGroup, false);
+            }
+
+            TextView url = (TextView) view.findViewById(R.id.webseed_url);
+            TextView text = (TextView) view.findViewById(R.id.webseed_text);
+            TextView error = (TextView) view.findViewById(R.id.webseed_error);
+
+            WebSeed f = getItem(i);
+
+            url.setText(f.getUrl());
+            text.setText("");
+            String err = f.getError();
+            if (err != null && !err.isEmpty()) {
+                error.setText(err);
+                error.setVisibility(View.VISIBLE);
+            } else {
+                error.setVisibility(View.GONE);
+            }
+
+            return view;
+        }
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        v = inflater.inflate(R.layout.torrent_trackers, container, false);
-        header = v;
+        v = inflater.inflate(R.layout.torrent_trackers, list, false);
         list = (ListView) v.findViewById(R.id.list);
-//        list = new ListView(getContext());
-//        v = list;
+        header = inflater.inflate(R.layout.torrent_trackers_header, list, false);
 
         files = new Files();
 
-//        list.addHeaderView(header);
+        list.addHeaderView(header);
         list.setAdapter(files);
 
-        View empty = v.findViewById(R.id.empty_list);
-        list.setEmptyView(empty);
+        empty = v.findViewById(R.id.empty_list);
 
         add = header.findViewById(R.id.torrent_trackers_add);
         dhtLast = (TextView) header.findViewById(R.id.torrent_trackers_dht_last);
@@ -164,13 +233,9 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
         webSeedsText = v.findViewById(R.id.trackers_webseeds_text);
         webSeeds = (ListView) v.findViewById(R.id.trackers_webseeds);
 
-        ArrayList<String> webseeds = new ArrayList<>();
-        for (int k = 0; k < Libtorrent.torrentWebSeedsCount(t); k++) {
-            webseeds.add(Libtorrent.torrentWebSeeds(t, k));
-        }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, webseeds);
-        webSeeds.setAdapter(adapter);
-        if (webseeds.size() == 0) {
+        ws = new WebSeedsAdapter();
+        webSeeds.setAdapter(ws);
+        if (ws.webseeds.size() == 0) {
             webSeedsText.setVisibility(View.GONE);
             webSeeds.setVisibility(View.GONE);
         }
@@ -184,7 +249,7 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
     public void update() {
         final long t = getArguments().getLong("torrent");
 
-        ff.clear();
+        files.ff.clear();
         long l = Libtorrent.torrentTrackersCount(t);
         for (long i = 0; i < l; i++) {
             Tracker tt = Libtorrent.torrentTrackers(t, i);
@@ -208,9 +273,16 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
                 MainApplication.setTextNA(dhtLast, str);
                 continue;
             }
-            ff.add(tt);
+            files.ff.add(tt);
         }
         files.notifyDataSetChanged();
+
+        if (files.getCount() == 0)
+            empty.setVisibility(View.VISIBLE);
+        else
+            empty.setVisibility(View.GONE);
+
+        ws.notifyDataSetChanged();
     }
 
     @Override
