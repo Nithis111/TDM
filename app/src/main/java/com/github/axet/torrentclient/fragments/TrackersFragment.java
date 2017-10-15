@@ -21,13 +21,14 @@ import com.github.axet.androidlibrary.widgets.OpenFileDialog;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.activities.MainActivity;
 import com.github.axet.torrentclient.app.MainApplication;
+import com.github.axet.wget.SpeedInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import libtorrent.Libtorrent;
 import libtorrent.Tracker;
-import libtorrent.WebSeed;
+import libtorrent.WebSeedUrl;
 
 public class TrackersFragment extends Fragment implements MainActivity.TorrentFragmentInterface {
     View v;
@@ -131,16 +132,56 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
 
             return view;
         }
+
+        void update() {
+            final long t = getArguments().getLong("torrent");
+            ff.clear();
+            long l = Libtorrent.torrentTrackersCount(t);
+            for (long i = 0; i < l; i++) {
+                Tracker tt = Libtorrent.torrentTrackers(t, i);
+                String url = tt.getAddr();
+                if (url.equals("PEX")) {
+                    MainApplication.setTextNA(pex, Libtorrent.torrentActive(t) ? tt.getPeers() + "" : "");
+                    continue;
+                }
+                if (url.equals("LPD")) {
+                    MainApplication.setTextNA(lpd, Libtorrent.torrentActive(t) ? tt.getPeers() + "" : "");
+                    continue;
+                }
+                if (url.equals("DHT")) {
+                    String str = MainApplication.formatDate(tt.getLastAnnounce());
+                    if (tt.getError() != null && !tt.getError().isEmpty())
+                        str += " (" + tt.getError() + ")";
+                    else {
+                        if (tt.getLastAnnounce() != 0)
+                            str += " (P: " + tt.getPeers() + ")";
+                    }
+                    MainApplication.setTextNA(dhtLast, str);
+                    continue;
+                }
+                ff.add(tt);
+            }
+            notifyDataSetChanged();
+        }
+    }
+
+    public static class WebSeedExt {
+        WebSeedUrl ws;
+        SpeedInfo downloaded;
+
+        public WebSeedExt(WebSeedUrl w) {
+            ws = w;
+        }
     }
 
     class WebSeedsAdapter extends BaseAdapter {
-        ArrayList<WebSeed> webseeds = new ArrayList<>();
+        ArrayList<WebSeedExt> webseeds = new ArrayList<>();
 
         public WebSeedsAdapter() {
             final long t = getArguments().getLong("torrent");
             for (int k = 0; k < Libtorrent.torrentWebSeedsCount(t); k++) {
-                WebSeed ws = Libtorrent.torrentWebSeeds(t, k);
-                webseeds.add(ws);
+                WebSeedUrl ws = Libtorrent.torrentWebSeeds(t, k);
+                webseeds.add(new WebSeedExt(ws));
             }
         }
 
@@ -150,7 +191,7 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
         }
 
         @Override
-        public WebSeed getItem(int i) {
+        public WebSeedExt getItem(int i) {
             return webseeds.get(i);
         }
 
@@ -176,19 +217,42 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
             TextView text = (TextView) view.findViewById(R.id.webseed_text);
             TextView error = (TextView) view.findViewById(R.id.webseed_error);
 
-            WebSeed f = getItem(i);
+            WebSeedExt f = getItem(i);
 
-            url.setText(f.getUrl());
             text.setText("");
-            String err = f.getError();
+
+            url.setText(f.ws.getUrl());
+            String err = f.ws.getError();
             if (err != null && !err.isEmpty()) {
                 error.setText(err);
                 error.setVisibility(View.VISIBLE);
             } else {
                 error.setVisibility(View.GONE);
+                if (f.downloaded != null) {
+                    text.setText(MainApplication.formatSize(getContext(), f.downloaded.getAverageSpeed()) + getContext().getString(R.string.per_second));
+                }
             }
 
+
             return view;
+        }
+
+        void update() {
+            final long t = getArguments().getLong("torrent");
+            boolean a = Libtorrent.torrentActive(t);
+            for (WebSeedExt w : ws.webseeds) {
+                if (a) {
+                    if (w.downloaded == null) {
+                        w.downloaded = new SpeedInfo();
+                        w.downloaded.start(w.ws.getDownloaded());
+                    } else {
+                        w.downloaded.step(w.ws.getDownloaded());
+                    }
+                } else {
+                    w.downloaded = null;
+                }
+            }
+            notifyDataSetChanged();
         }
     }
 
@@ -247,42 +311,14 @@ public class TrackersFragment extends Fragment implements MainActivity.TorrentFr
 
     @Override
     public void update() {
-        final long t = getArguments().getLong("torrent");
-
-        files.ff.clear();
-        long l = Libtorrent.torrentTrackersCount(t);
-        for (long i = 0; i < l; i++) {
-            Tracker tt = Libtorrent.torrentTrackers(t, i);
-            String url = tt.getAddr();
-            if (url.equals("PEX")) {
-                MainApplication.setTextNA(pex, Libtorrent.torrentActive(t) ? tt.getPeers() + "" : "");
-                continue;
-            }
-            if (url.equals("LPD")) {
-                MainApplication.setTextNA(lpd, Libtorrent.torrentActive(t) ? tt.getPeers() + "" : "");
-                continue;
-            }
-            if (url.equals("DHT")) {
-                String str = MainApplication.formatDate(tt.getLastAnnounce());
-                if (tt.getError() != null && !tt.getError().isEmpty())
-                    str += " (" + tt.getError() + ")";
-                else {
-                    if (tt.getLastAnnounce() != 0)
-                        str += " (P: " + tt.getPeers() + ")";
-                }
-                MainApplication.setTextNA(dhtLast, str);
-                continue;
-            }
-            files.ff.add(tt);
-        }
-        files.notifyDataSetChanged();
+        files.update();
 
         if (files.getCount() == 0)
             empty.setVisibility(View.VISIBLE);
         else
             empty.setVisibility(View.GONE);
 
-        ws.notifyDataSetChanged();
+        ws.update();
     }
 
     @Override

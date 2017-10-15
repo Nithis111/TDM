@@ -11,13 +11,19 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/webseed_url"
+
+        <com.github.axet.androidlibrary.widgets.PathMax
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:text="http://" />
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/webseed_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="http://test.com/download/" />
+        </com.github.axet.androidlibrary.widgets.PathMax>
 
         <TextView
             android:id="@+id/webseed_text"
@@ -30,6 +36,7 @@
 
     <TextView
         android:id="@+id/webseed_error"
+        android:textColor="?android:attr/textColorSecondary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
