@@ -149,6 +149,8 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
         }
 
         public void stop() {
+            if (t == -1)
+                return; // write errors on closed torrent can cause second stop on closed torrent
             Libtorrent.stopTorrent(t);
             StatsTorrent b = Libtorrent.torrentStats(t);
             downloaded.end(b.getDownloaded());
