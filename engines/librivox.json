@@ -1,5 +1,5 @@
 {
-  "version": 10,
+  "version": 11,
   "name": "librivox.org",
   "home": {
     "get": "http://librivox.org",
@@ -23,7 +23,7 @@
     "next": ".page-number.active+.page-number:regex(.*href=\"([^\"]*)\".*)"
   },
   "crawls": {
-    "New": "https://librivox.org/search?primary_key=0&search_category=title&search_page=1&search_form=get_results"
+    "New": "https://librivox.org/search?genre_id=0&status=all&project_type=either&sort_order=catalog_date&search_page=1&search_form=advanced"
   },
   "top": {
     "get": "tops",
