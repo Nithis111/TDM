@@ -16,8 +16,10 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.provider.DocumentsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -494,7 +496,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         if (s != null) {
             Uri path = s.getStoragePath();
             Intent intent = openFolderIntent(path);
-            if (OptimizationPreferenceCompat.isCallable(this, intent)) {
+            if (!OptimizationPreferenceCompat.isCallable(this, intent)) {
                 folder = false;
             }
         } else {
@@ -639,6 +641,18 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
     }
 
     public static Intent openFolderIntent(Uri p) {
+        String s = p.getScheme();
+        if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21) {
+            String tree = DocumentsContract.getTreeDocumentId(p);
+            String[] ss = tree.split(":"); // 1D13-0F08:private
+            if (ss[0].equals(Storage.STORAGE_PRIMARY)) {
+                String path = "";
+                if (ss.length > 1)
+                    path = ss[1];
+                File f = new File(Environment.getExternalStorageDirectory(), path);
+                p = Uri.fromFile(f);
+            }
+        }
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setDataAndType(p, "resource/folder");
         return intent;
