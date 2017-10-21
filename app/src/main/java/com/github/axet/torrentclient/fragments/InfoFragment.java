@@ -119,7 +119,7 @@ public class InfoFragment extends Fragment implements MainActivity.TorrentFragme
 
         pathButton = v.findViewById(R.id.torrent_path_open);
         Intent intent = MainActivity.openFolderIntent(p);
-        if (OptimizationPreferenceCompat.isCallable(getContext(), intent)) {
+        if (MainActivity.isCallable(getContext(), intent)) {
             pathButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

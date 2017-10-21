@@ -130,7 +130,7 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
         getContext().registerReceiver(receiver, fi);
 
         Intent intent = MainActivity.openFolderIntent(storage.getStoragePath());
-        openFolder = OptimizationPreferenceCompat.isCallable(context, intent);
+        openFolder = MainActivity.isCallable(context, intent);
     }
 
     public Context getContext() {

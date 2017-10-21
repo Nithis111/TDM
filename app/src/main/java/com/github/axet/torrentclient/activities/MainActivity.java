@@ -496,7 +496,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         if (s != null) {
             Uri path = s.getStoragePath();
             Intent intent = openFolderIntent(path);
-            if (!OptimizationPreferenceCompat.isCallable(this, intent)) {
+            if (!MainActivity.isCallable(this, intent)) {
                 folder = false;
             }
         } else {
@@ -646,10 +646,9 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
             String tree = DocumentsContract.getTreeDocumentId(p);
             String[] ss = tree.split(":"); // 1D13-0F08:private
             if (ss[0].equals(Storage.STORAGE_PRIMARY)) {
-                String path = "";
+                File f = Environment.getExternalStorageDirectory();
                 if (ss.length > 1)
-                    path = ss[1];
-                File f = new File(Environment.getExternalStorageDirectory(), path);
+                    f = new File(f, ss[1]);
                 p = Uri.fromFile(f);
             }
         }
@@ -658,13 +657,26 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         return intent;
     }
 
+    public static boolean isCallable(Context context, Intent intent) {
+        Uri p = intent.getData();
+        String s = p.getScheme();
+        if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21) {
+            String tree = DocumentsContract.getTreeDocumentId(p);
+            String[] ss = tree.split(":"); // 1D13-0F08:private
+            if (ss[0].equals(Storage.STORAGE_PRIMARY)) {
+                return OptimizationPreferenceCompat.isCallable(context, intent);
+            }
+        }
+        return false;
+    }
+
     public void openFolder(Storage.Torrent p) {
         openFolder(p.path);
     }
 
     public void openFolder(Uri p) {
         Intent intent = openFolderIntent(p);
-        if (OptimizationPreferenceCompat.isCallable(this, intent)) {
+        if (isCallable(this, intent)) {
             startActivity(intent);
         } else {
             Toast.makeText(this, R.string.no_folder_app, Toast.LENGTH_SHORT).show();
