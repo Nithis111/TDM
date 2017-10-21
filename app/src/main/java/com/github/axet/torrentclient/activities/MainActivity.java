@@ -494,7 +494,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         if (s != null) {
             Uri path = s.getStoragePath();
             Intent intent = openFolderIntent(path);
-            if (intent.resolveActivityInfo(getPackageManager(), 0) == null) {
+            if (OptimizationPreferenceCompat.isCallable(this, intent)) {
                 folder = false;
             }
         } else {

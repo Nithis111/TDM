@@ -31,6 +31,7 @@ import android.widget.Toast;
 
 import com.github.axet.androidlibrary.animations.RemoveItemAnimation;
 import com.github.axet.androidlibrary.widgets.HeaderGridView;
+import com.github.axet.androidlibrary.widgets.OptimizationPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.PopupShareActionProvider;
 import com.github.axet.androidlibrary.widgets.ThemeUtils;
 import com.github.axet.androidlibrary.widgets.UnreadCountDrawable;
@@ -129,7 +130,7 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
         getContext().registerReceiver(receiver, fi);
 
         Intent intent = MainActivity.openFolderIntent(storage.getStoragePath());
-        openFolder = intent.resolveActivityInfo(context.getPackageManager(), 0) != null;
+        openFolder = OptimizationPreferenceCompat.isCallable(context, intent);
     }
 
     public Context getContext() {
@@ -564,7 +565,7 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
         String s = t.path.getScheme();
         if (s.startsWith(ContentResolver.SCHEME_FILE)) {
             File p = new File(t.path.getPath());
-            if(!p.exists() && !p.mkdirs()) {
+            if (!p.exists() && !p.mkdirs()) {
                 Toast.makeText(main, R.string.torrent_notfound, Toast.LENGTH_LONG).show();
                 t.ejected = true;
                 return;
