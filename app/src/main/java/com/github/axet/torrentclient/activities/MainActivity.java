@@ -44,6 +44,7 @@ import com.github.axet.androidlibrary.app.AlarmManager;
 import com.github.axet.androidlibrary.widgets.AboutPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.HeaderGridView;
 import com.github.axet.androidlibrary.widgets.OpenFileDialog;
+import com.github.axet.androidlibrary.widgets.OptimizationPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.StoragePathPreferenceCompat;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.app.Drawer;
@@ -638,19 +639,18 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
     }
 
     public static Intent openFolderIntent(Uri p) {
-        File file = new File(p.getPath());
-        Uri selectedUri = Uri.fromFile(file);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(selectedUri, "resource/folder");
+        intent.setDataAndType(p, "resource/folder");
         return intent;
     }
 
     public void openFolder(Storage.Torrent p) {
+        openFolder(p.path);
     }
 
     public void openFolder(Uri p) {
         Intent intent = openFolderIntent(p);
-        if (intent.resolveActivityInfo(getPackageManager(), 0) != null) {
+        if (OptimizationPreferenceCompat.isCallable(this, intent)) {
             startActivity(intent);
         } else {
             Toast.makeText(this, R.string.no_folder_app, Toast.LENGTH_SHORT).show();

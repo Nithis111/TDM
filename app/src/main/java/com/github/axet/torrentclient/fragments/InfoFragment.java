@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.axet.androidlibrary.widgets.OptimizationPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.ThemeUtils;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.activities.MainActivity;
@@ -118,7 +119,7 @@ public class InfoFragment extends Fragment implements MainActivity.TorrentFragme
 
         pathButton = v.findViewById(R.id.torrent_path_open);
         Intent intent = MainActivity.openFolderIntent(p);
-        if (intent.resolveActivityInfo(getContext().getPackageManager(), 0) != null) {
+        if (OptimizationPreferenceCompat.isCallable(getContext(), intent)) {
             pathButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
