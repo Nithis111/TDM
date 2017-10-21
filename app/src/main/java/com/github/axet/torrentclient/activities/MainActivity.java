@@ -642,7 +642,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
 
     public static Intent openFolderIntent(Uri p) {
         String s = p.getScheme();
-        if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21) {
+        if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21) { // convert content:///primary to file://
             String tree = DocumentsContract.getTreeDocumentId(p);
             String[] ss = tree.split(":"); // 1D13-0F08:private
             if (ss[0].equals(Storage.STORAGE_PRIMARY)) {
@@ -663,11 +663,11 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21) {
             String tree = DocumentsContract.getTreeDocumentId(p);
             String[] ss = tree.split(":"); // 1D13-0F08:private
-            if (ss[0].equals(Storage.STORAGE_PRIMARY)) {
-                return OptimizationPreferenceCompat.isCallable(context, intent);
+            if (!ss[0].equals(Storage.STORAGE_PRIMARY)) {
+                return false;
             }
         }
-        return false;
+        return  OptimizationPreferenceCompat.isCallable(context, intent);
     }
 
     public void openFolder(Storage.Torrent p) {
