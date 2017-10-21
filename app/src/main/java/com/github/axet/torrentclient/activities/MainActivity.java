@@ -646,10 +646,9 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
             String tree = DocumentsContract.getTreeDocumentId(p);
             String[] ss = tree.split(":"); // 1D13-0F08:private
             if (ss[0].equals(Storage.STORAGE_PRIMARY)) {
-                String path = "";
+                File f = Environment.getExternalStorageDirectory();
                 if (ss.length > 1)
-                    path = ss[1];
-                File f = new File(Environment.getExternalStorageDirectory(), path);
+                    f = new File(f, ss[1]);
                 p = Uri.fromFile(f);
             }
         }
