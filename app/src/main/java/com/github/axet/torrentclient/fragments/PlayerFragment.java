@@ -235,9 +235,10 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                     app.playerStop();
                     if (p) // if were playing show play button; else start playing current
                         return;
-                }
+                } // no else
                 if (player.getPlaying() == -1 && files.selected == -1) { // start playing with no selection
                     play(0);
+                    playUpdate(true);
                 } else if (player.isPlaying() || player.getPlaying() == files.selected || files.selected == -1) { // pause action
                     int i = player.getPlaying();
                     player.pause();
