@@ -98,6 +98,8 @@ public class TorrentContentProvider extends ContentProvider {
                 players.remove(p);
             }
         }
+        if (players.size() == 0)
+            return;
         handler.removeCallbacks(refresh);
         handler.postDelayed(refresh, TIMEOUT);
     }
@@ -153,6 +155,7 @@ public class TorrentContentProvider extends ContentProvider {
             }
             players.put(player, System.currentTimeMillis()); // refresh last access time
             file = player.find(uri);
+            freePlayers();
         }
         return file;
     }
@@ -160,7 +163,6 @@ public class TorrentContentProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         deleteTmp();
-        freePlayers();
         return true;
     }
 
