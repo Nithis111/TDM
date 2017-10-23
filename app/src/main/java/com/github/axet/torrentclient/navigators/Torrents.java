@@ -202,12 +202,6 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
 
         final Storage.Torrent t = getItem(position);
 
-        Intent intent = MainActivity.openFolderIntent(t.path);
-        if (MainActivity.isCallable(context, intent)) {
-            convertView.findViewById(R.id.recording_player_open).setVisibility(View.GONE);
-            convertView.findViewById(R.id.recording_player_open_space).setVisibility(View.GONE);
-        }
-
         Boolean u = unread.get(t);
         if (u != null && u)
             convertView.setBackgroundColor(ThemeUtils.getThemeColor(getContext(), R.attr.unreadColor));
@@ -383,7 +377,14 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
             }
 
             final ImageView open = (ImageView) convertView.findViewById(R.id.recording_player_open);
-
+            Intent intent = MainActivity.openFolderIntent(t.path);
+            if (!MainActivity.isCallable(context, intent)) {
+                open.setVisibility(View.GONE);
+                open.setVisibility(View.GONE);
+            } else {
+                open.setVisibility(View.VISIBLE);
+                open.setVisibility(View.VISIBLE);
+            }
             open.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
