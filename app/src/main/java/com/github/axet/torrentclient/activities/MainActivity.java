@@ -491,12 +491,13 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
             menu.findItem(R.id.action_show_folder).setVisible(false);
         }
 
-        menu.findItem(R.id.action_show_folder).setVisible(false);
+        MenuItem folder = menu.findItem(R.id.action_show_folder);
+        folder.setVisible(false);
         Storage s = storage;
         if (s != null) {
             Intent intent = openFolderIntent(s.getStoragePath());
             if (MainActivity.isCallable(this, intent)) {
-                menu.findItem(R.id.action_show_folder).setVisible(true);
+                folder.setVisible(true);
             }
         }
 
