@@ -698,15 +698,6 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
         save();
     }
 
-    public Uri path(long t) {
-        for (Torrent a : torrents) {
-            if (a.t == t) {
-                return a.path;
-            }
-        }
-        throw new RuntimeException("unable to find");
-    }
-
     public boolean isLocalStorageEmpty() {
         File[] ff = getLocalStorage().listFiles();
         if (ff == null)
