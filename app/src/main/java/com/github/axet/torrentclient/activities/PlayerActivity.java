@@ -249,7 +249,7 @@ public class PlayerActivity extends AppCompatActivity {
         fab_play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (player.isPlaying()) {
+                if (player.isPlayingSound()) {
                     player.pause();
                 } else {
                     player.resume();
