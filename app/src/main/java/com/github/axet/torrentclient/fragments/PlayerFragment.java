@@ -233,11 +233,14 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                 if (app.player != null && app.player != player) {
                     boolean p = app.player.isPlaying();
                     app.playerStop();
-                    if (p) // if were playing show play button; else start playing current
+                    if (p) { // if were playing show play button; else start playing current
+                        playUpdate(false);
                         return;
-                }
+                    }
+                } // no else
                 if (player.getPlaying() == -1 && files.selected == -1) { // start playing with no selection
                     play(0);
+                    playUpdate(true);
                 } else if (player.isPlaying() || player.getPlaying() == files.selected || files.selected == -1) { // pause action
                     int i = player.getPlaying();
                     player.pause();
@@ -245,7 +248,6 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                         files.selected = i;
                         files.notifyDataSetChanged();
                         playUpdate(false);
-                        player.notifyStop(); // notify after pause()
                     } else {
                         if (player.isPlaying()) { // did we resume?
                             files.selected = -1; // clear user selection after resume

@@ -804,6 +804,7 @@ public class TorrentPlayer {
         if (getPlaying() != -1) {
             if (player == null) {
                 stop(); // clear next
+                notifyStop();
                 return;
             }
             if (isPlayingSound()) {
