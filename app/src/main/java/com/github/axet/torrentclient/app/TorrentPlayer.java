@@ -542,10 +542,14 @@ public class TorrentPlayer {
     }
 
     public TorrentPlayer(Context context, Storage storage, long t) {
+        this(context, storage, storage.find(t));
+    }
+
+    public TorrentPlayer(Context context, Storage storage, Storage.Torrent t) {
         this.handler = new Handler(context.getMainLooper());
         this.context = context;
         this.storage = storage;
-        this.torrent = storage.find(t);
+        this.torrent = t;
 
         IntentFilter ff = new IntentFilter();
         ff.addAction(PLAYER_PAUSE);
@@ -762,6 +766,11 @@ public class TorrentPlayer {
     }
 
     public void next(final int next) {
+        if (player != null) { // next on error or end
+            player.release();
+            player = null;
+        }
+        handler.removeCallbacks(this.saveDelay);
         handler.removeCallbacks(this.progress);
         handler.removeCallbacks(this.next);
         this.next = new Runnable() {

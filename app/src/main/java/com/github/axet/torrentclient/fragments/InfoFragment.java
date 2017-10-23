@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.axet.androidlibrary.services.FileProvider;
 import com.github.axet.androidlibrary.widgets.OptimizationPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.ThemeUtils;
 import com.github.axet.torrentclient.R;
@@ -63,6 +64,14 @@ public class InfoFragment extends Fragment implements MainActivity.TorrentFragme
 
     KeyguardManager myKM;
 
+    MainApplication getApp() {
+        return ((MainApplication) getContext().getApplicationContext());
+    }
+
+    MainActivity getMain() {
+        return (MainActivity) getActivity();
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -105,25 +114,25 @@ public class InfoFragment extends Fragment implements MainActivity.TorrentFragme
             @Override
             public void onClick(View v) {
                 if (!Libtorrent.downloadMetadata(t)) {
-                    ((MainActivity) getActivity().getApplicationContext()).Error(Libtorrent.error());
+                    getMain().Error(Libtorrent.error());
                     return;
                 }
             }
         });
 
-        Storage storage = ((MainApplication) getContext().getApplicationContext()).getStorage();
+        Storage storage = getApp().getStorage();
         final Uri p = storage.find(t).path;
 
         TextView path = (TextView) v.findViewById(R.id.torrent_path);
         path.setText(storage.getDisplayName(p) + " "); // PathMax loses forward slash
 
         pathButton = v.findViewById(R.id.torrent_path_open);
-        final Intent intent = MainActivity.openFolderIntent(p);
+        final Intent intent = MainActivity.openFolderIntent(getContext(), p);
         if (MainActivity.isCallable(getContext(), intent)) {
             pathButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    getActivity().startActivity(intent);
+                    getMain().startActivity(intent);
                 }
             });
         } else {
@@ -136,7 +145,7 @@ public class InfoFragment extends Fragment implements MainActivity.TorrentFragme
         renameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) getActivity()).renameDialog(t);
+                getMain().renameDialog(t);
             }
         });
 
@@ -202,7 +211,7 @@ public class InfoFragment extends Fragment implements MainActivity.TorrentFragme
         check.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) getActivity()).checkTorrent(t);
+                getMain().checkTorrent(t);
                 checkUpdate.run();
             }
         });
