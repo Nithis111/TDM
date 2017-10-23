@@ -69,7 +69,7 @@
     <string name="trackers">Трекрер</string>
     <string name="no_trackers">Нет трекеров</string>
     <string name="peers_tab">Пиры:</string>
-    <string name="tab_player">Аудио Плеер</string>
+    <string name="tab_player">Плеер</string>
     <string name="tab_details">Подробно</string>
     <string name="tab_info">Инфо</string>
     <string name="tab_files">Файлы</string>
