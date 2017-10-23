@@ -118,12 +118,12 @@ public class InfoFragment extends Fragment implements MainActivity.TorrentFragme
         path.setText(storage.getDisplayName(p) + " "); // TextView loses forward slash
 
         pathButton = v.findViewById(R.id.torrent_path_open);
-        Intent intent = MainActivity.openFolderIntent(p);
+        final Intent intent = MainActivity.openFolderIntent(p);
         if (MainActivity.isCallable(getContext(), intent)) {
             pathButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ((MainActivity) getActivity()).openFolder(p);
+                    getActivity().startActivity(intent);
                 }
             });
         } else {

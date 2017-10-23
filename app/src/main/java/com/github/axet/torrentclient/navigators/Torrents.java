@@ -70,7 +70,6 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
     HeaderGridView list;
     Map<Storage.Torrent, Boolean> unread = new HashMap<>();
     BroadcastReceiver receiver;
-    boolean openFolder;
     Storage storage;
 
     public static class Tag {
@@ -128,9 +127,6 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
         IntentFilter fi = new IntentFilter();
         fi.addAction(PLAY);
         getContext().registerReceiver(receiver, fi);
-
-        Intent intent = MainActivity.openFolderIntent(storage.getStoragePath());
-        openFolder = MainActivity.isCallable(context, intent);
     }
 
     public Context getContext() {
@@ -194,11 +190,6 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.torrent, parent, false);
             convertView.setTag(null);
-        }
-
-        if (!openFolder) {
-            convertView.findViewById(R.id.recording_player_open).setVisibility(View.GONE);
-            convertView.findViewById(R.id.recording_player_open_space).setVisibility(View.GONE);
         }
 
         final View view = convertView;
@@ -386,11 +377,18 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
             }
 
             final ImageView open = (ImageView) convertView.findViewById(R.id.recording_player_open);
-
+            final Intent intent = MainActivity.openFolderIntent(t.path);
+            if (!MainActivity.isCallable(context, intent)) {
+                open.setVisibility(View.GONE);
+                open.setVisibility(View.GONE);
+            } else {
+                open.setVisibility(View.VISIBLE);
+                open.setVisibility(View.VISIBLE);
+            }
             open.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    main.openFolder(t);
+                    main.startActivity(intent);
                 }
             });
 
