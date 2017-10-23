@@ -367,7 +367,7 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
         String player = "";
         boolean playing = false;
         if (p != null) {
-            playing = p.isPlaying();
+            playing = p.isPlayingSound();
             player = p.formatHeader();
 
         }

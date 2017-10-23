@@ -687,7 +687,7 @@ public class TorrentPlayer {
     }
 
     public void close(SimpleExoPlayerView view) {
-        if (isPlaying())
+        if (isPlayingSound())
             pause();
         video = -1; // do not close player, keep seek progress
     }
@@ -787,6 +787,10 @@ public class TorrentPlayer {
     public boolean isPlaying() { // actual playing mode (next or actual sound)
         if (next != null)
             return true;
+        return isPlayingSound();
+    }
+
+    public boolean isPlayingSound() { // actual playing mode (actual sound)
         if (player == null)
             return false;
         return player.getPlayWhenReady();
@@ -802,7 +806,7 @@ public class TorrentPlayer {
                 stop(); // clear next
                 return;
             }
-            if (isPlaying()) {
+            if (isPlayingSound()) {
                 player.setPlayWhenReady(false);
                 notifyProgress();
                 handler.removeCallbacks(progress);
