@@ -309,16 +309,26 @@ public class TorrentPlayer {
 
     Decoder[] DECODERS = new Decoder[]{RAR, ZIP};
 
-    public static boolean skipType(PlayerFile f) { // MediaPlayer will open jpg and wait forever
-        String type = TorrentContentProvider.getType(f.getName());
+    public static boolean isVideo(String type) {
+        if (type != null)
+            return type.startsWith("video");
+        return false;
+    }
+
+    public static boolean isSupported(String type) {
         if (type == null || type.isEmpty())
             return false;
-        String[] skip = new String[]{"image"};
+        String[] skip = new String[]{"image", "text", "application/pdf"}; // MediaPlayer will open jpg and wait forever
         for (String s : skip) {
+            if (type.startsWith(s))
+                return false;
+        }
+        String[] support = new String[]{"audio"};
+        for (String s : support) {
             if (type.startsWith(s))
                 return true;
         }
-        return false;
+        return true; // rest true
     }
 
     public static void save(Context context, TorrentPlayer player) {
@@ -641,7 +651,7 @@ public class TorrentPlayer {
         playingUri = f.uri;
         playingFile = f;
         if (f.tor.file.getBytesCompleted() == f.tor.file.getLength()) {
-            if (!skipType(f)) {
+            if (!isSupported(TorrentContentProvider.getType(f.getName()))) {
                 prepare(f.uri);
             }
         }
@@ -663,7 +673,7 @@ public class TorrentPlayer {
     public void play() {
         if (video != getPlaying()) { // already playing video? just call start()
             String type = TorrentContentProvider.getType(playingFile.getName());
-            if (type != null && type.startsWith("video")) {
+            if (isVideo(type)) {
                 PlayerActivity.startActivity(context);
                 return;
             } else {
@@ -716,6 +726,7 @@ public class TorrentPlayer {
 
             @Override
             public void onPlayerError(ExoPlaybackException error) {
+                Log.d(TAG, "Playing error", error);
                 next(playingIndex + 1);
             }
 
@@ -773,7 +784,9 @@ public class TorrentPlayer {
         handler.postDelayed(this.next, AlarmManager.SEC1);
     }
 
-    public boolean isPlaying() { // actual sound
+    public boolean isPlaying() { // actual playing mode (next or actual sound)
+        if (next != null)
+            return true;
         if (player == null)
             return false;
         return player.getPlayWhenReady();

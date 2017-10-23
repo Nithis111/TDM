@@ -3,6 +3,7 @@ package com.github.axet.torrentclient.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -21,6 +22,7 @@ import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.activities.MainActivity;
 import com.github.axet.torrentclient.app.MainApplication;
 import com.github.axet.torrentclient.app.TorrentPlayer;
+import com.github.axet.torrentclient.services.TorrentContentProvider;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -50,6 +52,12 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
 
     public class Files extends BaseAdapter {
         public int selected = -1;
+
+        public String getFileType(int index) {
+            TorrentPlayer.PlayerFile f = files.getItem(index);
+            String type = TorrentContentProvider.getType(f.getName());
+            return type;
+        }
 
         @Override
         public int getCount() {
@@ -193,6 +201,7 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                 play(i);
                 files.selected = -1;
                 files.notifyDataSetChanged();
+                playUpdate(true);
                 list.smoothScrollToPosition(i);
             }
         });
@@ -213,6 +222,7 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                 play(i);
                 files.selected = -1;
                 files.notifyDataSetChanged();
+                playUpdate(true);
                 list.smoothScrollToPosition(i);
             }
         });
@@ -233,16 +243,31 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                     player.pause();
                     if (player.isStop()) { // we stoped 'next' loop, keep last item highligted
                         files.selected = i;
+                        files.notifyDataSetChanged();
+                        playUpdate(false);
                     } else {
-                        if (player.isPlaying()) // did we resume?
+                        if (player.isPlaying()) { // did we resume?
                             files.selected = -1; // clear user selection after resume
+                            files.notifyDataSetChanged();
+                        }
+                        playUpdate(true);
                     }
                     MainApplication app = ((MainApplication) getContext().getApplicationContext());
                     TorrentPlayer.save(getContext(), app.player);
                 } else { // play selected file
-                    play(files.selected);
-                    files.selected = -1;
-                    files.notifyDataSetChanged();
+                    int index = files.selected;
+                    String type = files.getFileType(index);
+                    if (TorrentPlayer.isSupported(type)) {
+                        play(index);
+                        files.selected = -1;
+                        files.notifyDataSetChanged();
+                        playUpdate(true);
+                    } else {
+                        Uri uri = files.getItem(index).uri;
+                        Intent intent = new Intent();
+                        intent.setDataAndType(uri, type);
+                        startActivity(intent);
+                    }
                 }
             }
         });
@@ -260,12 +285,10 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
             }
         });
 
@@ -293,6 +316,7 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 files.selected = position;
                 files.notifyDataSetChanged();
+                playUpdate();
             }
         });
 
@@ -304,7 +328,7 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
             public void onReceive(Context context, Intent intent) {
                 String a = intent.getAction();
                 if (a.equals(TorrentPlayer.PLAYER_NEXT)) {
-                    play.setImageResource(R.drawable.ic_pause_24dp);
+                    playUpdate(true);
                     files.notifyDataSetChanged();
                     handler.post(new Runnable() {
                         @Override
@@ -316,7 +340,7 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                     });
                 }
                 if (a.equals(TorrentPlayer.PLAYER_STOP)) {
-                    play.setImageResource(R.drawable.play);
+                    playUpdate(false);
                     playerPos.setText(MainApplication.formatDuration(context, 0));
                     playerDur.setText(MainApplication.formatDuration(context, 0));
                     files.notifyDataSetChanged();
@@ -327,10 +351,7 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                     boolean p = intent.getBooleanExtra("play", false);
                     playerPos.setText(MainApplication.formatDuration(context, pos));
                     playerDur.setText(MainApplication.formatDuration(context, dur));
-                    if (p)
-                        play.setImageResource(R.drawable.ic_pause_24dp);
-                    else
-                        play.setImageResource(R.drawable.play);
+                    playUpdate(p);
                     seek.setMax((int) dur);
                     seek.setProgress((int) pos);
                 }
@@ -404,6 +425,7 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                     player.update();
                     pendindBytesUpdate = p;
                     pendindBytesLengthUpdate = pp;
+                    list.smoothScrollToPosition(player.getPlaying());
                 }
             }
         }
@@ -438,6 +460,35 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                 player.close();
             }
             player = null;
+        }
+    }
+
+    void playUpdate() {
+        boolean playing = false;
+        if (player != null) {
+            playing = player.getPlaying() != -1;
+        }
+        playUpdate(playing);
+    }
+
+    void playUpdate(boolean playing) {
+        if (playing) {
+            play.setImageResource(R.drawable.ic_pause_24dp);
+        } else {
+            if (player != null) {
+                int index = files.selected;
+                if (index == -1) {
+                    index = player.getPlaying();
+                }
+                String type = files.getFileType(index);
+                if (TorrentPlayer.isSupported(type)) {
+                    play.setImageResource(R.drawable.play);
+                } else {
+                    play.setImageResource(R.drawable.ic_open_in_new_black_24dp);
+                }
+            } else {
+                play.setImageResource(R.drawable.play);
+            }
         }
     }
 }
