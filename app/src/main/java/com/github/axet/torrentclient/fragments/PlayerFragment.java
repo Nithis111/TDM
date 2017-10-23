@@ -480,11 +480,15 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                 if (index == -1) {
                     index = player.getPlaying();
                 }
-                String type = files.getFileType(index);
-                if (TorrentPlayer.isSupported(type)) {
-                    play.setImageResource(R.drawable.play);
+                if (index != -1) {
+                    String type = files.getFileType(index);
+                    if (TorrentPlayer.isSupported(type)) {
+                        play.setImageResource(R.drawable.play);
+                    } else {
+                        play.setImageResource(R.drawable.ic_open_in_new_black_24dp);
+                    }
                 } else {
-                    play.setImageResource(R.drawable.ic_open_in_new_black_24dp);
+                    play.setImageResource(R.drawable.play);
                 }
             } else {
                 play.setImageResource(R.drawable.play);
