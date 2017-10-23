@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.CancellationSignal;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.support.annotation.Nullable;
@@ -26,6 +27,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.TreeSet;
 
 // <application>
 //   <provider
@@ -47,6 +51,17 @@ public class TorrentContentProvider extends ContentProvider {
     public static String FILE_PREFIX = "player";
     public static String FILE_SUFFIX = ".tmp";
 
+    public static long TIMEOUT = 1 * 1000 * 60;
+
+    HashMap<TorrentPlayer, Long> players = new HashMap<>();
+    Runnable refresh = new Runnable() {
+        @Override
+        public void run() {
+            freePlayers();
+        }
+    };
+    Handler handler = new Handler();
+
     public static String getType(String file) {
         String type = MimeTypeMap.getFileExtensionFromUrl(Uri.encode(file));
         type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(type);
@@ -63,6 +78,28 @@ public class TorrentContentProvider extends ContentProvider {
         String name = f.toString();
         Uri u = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(info.authority).path(name).build();
         return u;
+    }
+
+    TorrentPlayer find(String hash) {
+        for (TorrentPlayer p : players.keySet()) {
+            if (p.torrentHash.equals(hash)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    void freePlayers() {
+        long now = System.currentTimeMillis();
+        for (TorrentPlayer p : new HashSet<>(players.keySet())) {
+            long l = players.get(p);
+            if (l + TIMEOUT < now) {
+                p.close();
+                players.remove(p);
+            }
+        }
+        handler.removeCallbacks(refresh);
+        handler.postDelayed(refresh, TIMEOUT);
     }
 
     void deleteTmp() {
@@ -101,9 +138,29 @@ public class TorrentContentProvider extends ContentProvider {
         }
     }
 
+    TorrentPlayer.PlayerFile getPlayerFile(Uri uri) {
+        TorrentPlayer.PlayerFile file = null;
+        MainApplication app = ((MainApplication) getContext().getApplicationContext());
+        if (app.player != null) {
+            file = app.player.find(uri);
+        }
+        if (file == null) {
+            String hash = uri.getPathSegments().get(0);
+            Storage storage = ((MainApplication) getContext().getApplicationContext()).getStorage();
+            TorrentPlayer player = find(hash);
+            if (player == null) {
+                player = new TorrentPlayer(getContext(), storage, storage.find(hash).t);
+            }
+            players.put(player, System.currentTimeMillis()); // refresh last access time
+            file = player.find(uri);
+        }
+        return file;
+    }
+
     @Override
     public boolean onCreate() {
         deleteTmp();
+        freePlayers();
         return true;
     }
 
@@ -120,12 +177,7 @@ public class TorrentContentProvider extends ContentProvider {
             projection = FileProvider.COLUMNS;
         }
 
-        MainApplication app = ((MainApplication) getContext().getApplicationContext());
-
-        if (app.player == null)
-            return null;
-
-        TorrentPlayer.PlayerFile f = app.player.find(uri);
+        TorrentPlayer.PlayerFile f = getPlayerFile(uri);
         if (f == null)
             return null;
 
@@ -183,18 +235,7 @@ public class TorrentContentProvider extends ContentProvider {
     @Nullable
     @Override
     public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
-        MainApplication app = ((MainApplication) getContext().getApplicationContext());
-
-        TorrentPlayer.PlayerFile file = null;
-        if (app.player != null) {
-            file = app.player.find(uri);
-        }
-        if (file == null) {
-            String hash = uri.getPathSegments().get(0);
-            Storage storage = ((MainApplication) getContext().getApplicationContext()).getStorage();
-            TorrentPlayer player = new TorrentPlayer(getContext(), storage, storage.find(hash).t);
-            file = player.find(uri);
-        }
+        TorrentPlayer.PlayerFile file = getPlayerFile(uri);
         if (file == null)
             return null;
 
