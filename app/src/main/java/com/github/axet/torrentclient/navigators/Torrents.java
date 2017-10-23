@@ -70,7 +70,6 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
     HeaderGridView list;
     Map<Storage.Torrent, Boolean> unread = new HashMap<>();
     BroadcastReceiver receiver;
-    boolean openFolder;
     Storage storage;
 
     public static class Tag {
@@ -128,9 +127,6 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
         IntentFilter fi = new IntentFilter();
         fi.addAction(PLAY);
         getContext().registerReceiver(receiver, fi);
-
-        Intent intent = MainActivity.openFolderIntent(storage.getStoragePath());
-        openFolder = MainActivity.isCallable(context, intent);
     }
 
     public Context getContext() {
@@ -196,11 +192,6 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
             convertView.setTag(null);
         }
 
-        if (!openFolder) {
-            convertView.findViewById(R.id.recording_player_open).setVisibility(View.GONE);
-            convertView.findViewById(R.id.recording_player_open_space).setVisibility(View.GONE);
-        }
-
         final View view = convertView;
         final View base = convertView.findViewById(R.id.recording_base); // GridView unable to handle GONE views, hide its base.
 
@@ -210,6 +201,12 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
         }
 
         final Storage.Torrent t = getItem(position);
+
+        Intent intent = MainActivity.openFolderIntent(t.path);
+        if (MainActivity.isCallable(context, intent)) {
+            convertView.findViewById(R.id.recording_player_open).setVisibility(View.GONE);
+            convertView.findViewById(R.id.recording_player_open_space).setVisibility(View.GONE);
+        }
 
         Boolean u = unread.get(t);
         if (u != null && u)
