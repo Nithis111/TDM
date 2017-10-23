@@ -633,7 +633,8 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         }
 
         if (id == R.id.action_show_folder) {
-            openFolder(storage.getStoragePath());
+            Intent intent = openFolderIntent(storage.getStoragePath());
+            startActivity(intent);
             return true;
         }
 
@@ -667,20 +668,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
                 return false;
             }
         }
-        return  OptimizationPreferenceCompat.isCallable(context, intent);
-    }
-
-    public void openFolder(Storage.Torrent p) {
-        openFolder(p.path);
-    }
-
-    public void openFolder(Uri p) {
-        Intent intent = openFolderIntent(p);
-        if (isCallable(this, intent)) {
-            startActivity(intent);
-        } else {
-            Toast.makeText(this, R.string.no_folder_app, Toast.LENGTH_SHORT).show();
-        }
+        return OptimizationPreferenceCompat.isCallable(context, intent);
     }
 
     @Override
