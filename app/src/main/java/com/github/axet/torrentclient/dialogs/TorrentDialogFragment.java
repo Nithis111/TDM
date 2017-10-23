@@ -176,7 +176,18 @@ public class TorrentDialogFragment extends DialogFragment implements MainActivit
                     @Override
                     public void onClick(View v) {
                         long t = getArguments().getLong("torrent");
-                        Torrents.play(getContext(), t);
+                        int s = Libtorrent.torrentStatus(t);
+                        switch (s) {
+                            case Libtorrent.StatusChecking:
+                            case Libtorrent.StatusDownloading:
+                            case Libtorrent.StatusQueued:
+                            case Libtorrent.StatusSeeding:
+                                Torrents.stop(getContext(), t);
+                                break;
+                            default:
+                                Torrents.play(getContext(), t);
+                                break;
+                        }
                     }
                 });
             }

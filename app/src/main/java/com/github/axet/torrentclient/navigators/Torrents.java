@@ -56,6 +56,7 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
     public static final String TAG = Torrents.class.getSimpleName();
 
     public static final String PLAY = Torrents.class.getCanonicalName() + "_PLAY";
+    public static final String STOP = Torrents.class.getCanonicalName() + "_STOP";
 
     static final int TYPE_COLLAPSED = 0;
     static final int TYPE_EXPANDED = 1;
@@ -106,6 +107,12 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
         context.sendBroadcast(i);
     }
 
+    public static void stop(Context context, long t) {
+        Intent i = new Intent(STOP);
+        i.putExtra("torrent", t);
+        context.sendBroadcast(i);
+    }
+
     public Torrents(MainActivity main, HeaderGridView list) {
         super();
 
@@ -121,11 +128,15 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
                 if (a.equals(PLAY)) {
                     Storage.Torrent t = storage.find(intent.getLongExtra("torrent", -1));
                     play(t);
+                } else if (a.equals(STOP)) {
+                    Storage.Torrent t = storage.find(intent.getLongExtra("torrent", -1));
+                    stop(t);
                 }
             }
         };
         IntentFilter fi = new IntentFilter();
         fi.addAction(PLAY);
+        fi.addAction(STOP);
         getContext().registerReceiver(receiver, fi);
     }
 
@@ -556,6 +567,11 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
         else
             storage.stop(t);
 
+        notifyDataSetChanged();
+    }
+
+    public void stop(Storage.Torrent t) {
+        storage.stop(t);
         notifyDataSetChanged();
     }
 
