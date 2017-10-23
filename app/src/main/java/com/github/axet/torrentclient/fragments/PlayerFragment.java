@@ -245,7 +245,6 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                         files.selected = i;
                         files.notifyDataSetChanged();
                         playUpdate(false);
-                        player.notifyStop(); // notify after pause()
                     } else {
                         if (player.isPlaying()) { // did we resume?
                             files.selected = -1; // clear user selection after resume
