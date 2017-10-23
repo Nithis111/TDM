@@ -43,6 +43,7 @@ import android.widget.Toast;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.github.axet.androidlibrary.app.AlarmManager;
+import com.github.axet.androidlibrary.services.FileProvider;
 import com.github.axet.androidlibrary.widgets.AboutPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.HeaderGridView;
 import com.github.axet.androidlibrary.widgets.OpenFileDialog;
@@ -61,6 +62,7 @@ import com.github.axet.torrentclient.dialogs.OpenIntentDialogFragment;
 import com.github.axet.torrentclient.dialogs.RatesDialogFragment;
 import com.github.axet.torrentclient.dialogs.TorrentDialogFragment;
 import com.github.axet.torrentclient.navigators.Torrents;
+import com.github.axet.torrentclient.services.TorrentContentProvider;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -495,7 +497,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         folder.setVisible(false);
         Storage s = storage;
         if (s != null) {
-            Intent intent = openFolderIntent(s.getStoragePath());
+            Intent intent = openFolderIntent(this, s.getStoragePath());
             if (MainActivity.isCallable(this, intent)) {
                 folder.setVisible(true);
             }
@@ -629,7 +631,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         }
 
         if (id == R.id.action_show_folder) {
-            Intent intent = openFolderIntent(storage.getStoragePath());
+            Intent intent = openFolderIntent(this, TorrentContentProvider.getUriStorage());
             startActivity(intent);
             return true;
         }
@@ -637,7 +639,8 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         return super.onOptionsItemSelected(item);
     }
 
-    public static Intent openFolderIntent(Uri p) {
+    public static Intent openFolderIntent(Context context, Uri p) {
+        boolean perms = false;
         String s = p.getScheme();
         if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21) { // convert content:///primary to file://
             String tree = DocumentsContract.getTreeDocumentId(p);
@@ -647,10 +650,14 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
                 if (ss.length > 1)
                     f = new File(f, ss[1]);
                 p = Uri.fromFile(f);
+            } else {
+                perms = true;
             }
         }
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setDataAndType(p, "resource/folder");
+        if (perms)
+            FileProvider.grantPermissions(context, intent, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
         return intent;
     }
 

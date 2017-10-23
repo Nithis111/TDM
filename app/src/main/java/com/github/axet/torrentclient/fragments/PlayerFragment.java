@@ -2,6 +2,8 @@ package com.github.axet.torrentclient.fragments;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +20,7 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.github.axet.androidlibrary.services.FileProvider;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.activities.MainActivity;
 import com.github.axet.torrentclient.app.MainApplication;
@@ -269,6 +272,7 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                         Uri uri = files.getItem(index).uri;
                         Intent intent = new Intent();
                         intent.setDataAndType(uri, type);
+                        FileProvider.grantPermissions(getContext(), intent, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                         startActivity(intent);
                     }
                 }

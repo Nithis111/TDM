@@ -17,6 +17,7 @@ import android.webkit.MimeTypeMap;
 
 import com.github.axet.androidlibrary.services.FileProvider;
 import com.github.axet.torrentclient.app.MainApplication;
+import com.github.axet.torrentclient.app.Storage;
 import com.github.axet.torrentclient.app.TorrentPlayer;
 
 import java.io.File;
@@ -50,6 +51,11 @@ public class TorrentContentProvider extends ContentProvider {
         String type = MimeTypeMap.getFileExtensionFromUrl(Uri.encode(file));
         type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(type);
         return type;
+    }
+
+    public static Uri getUriStorage() {
+        Uri u = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(info.authority).path("storage").build();
+        return u;
     }
 
     public static Uri getUriForFile(String hash, String file) {
@@ -179,13 +185,20 @@ public class TorrentContentProvider extends ContentProvider {
     public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
         MainApplication app = ((MainApplication) getContext().getApplicationContext());
 
-        if (app.player == null)
+        TorrentPlayer.PlayerFile file = null;
+        if (app.player != null) {
+            file = app.player.find(uri);
+        }
+        if (file == null) {
+            String hash = uri.getPathSegments().get(0);
+            Storage storage = ((MainApplication) getContext().getApplicationContext()).getStorage();
+            TorrentPlayer player = new TorrentPlayer(getContext(), storage, storage.find(hash).t);
+            file = player.find(uri);
+        }
+        if (file == null)
             return null;
 
-        final TorrentPlayer.PlayerFile f = app.player.find(uri);
-        if (f == null)
-            return null;
-
+        final TorrentPlayer.PlayerFile f = file;
         final int fileMode = FileProvider.modeToMode(mode);
 
         deleteTmp(); // will not delete opened files
