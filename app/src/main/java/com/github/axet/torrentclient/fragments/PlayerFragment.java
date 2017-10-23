@@ -421,11 +421,14 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
             } else {
                 long p = Libtorrent.torrentPendingBytesCompleted(t);
                 long pp = Libtorrent.torrentPendingBytesLength(t);
-                if (pendindBytesUpdate != p || pendindBytesLengthUpdate != pp) {
+                boolean d = pendindBytesUpdate != p; // downloading
+                boolean u = pendindBytesLengthUpdate != pp; // user selected
+                if (d || u) {
                     player.update();
                     pendindBytesUpdate = p;
                     pendindBytesLengthUpdate = pp;
-                    list.smoothScrollToPosition(player.getPlaying());
+                    if (u)
+                        list.smoothScrollToPosition(player.getPlaying());
                 }
             }
         }
