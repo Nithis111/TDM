@@ -500,6 +500,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
             Intent intent = openFolderIntent(this, s.getStoragePath());
             if (MainActivity.isCallable(this, intent)) {
                 folder.setVisible(true);
+                folder.setIntent(intent);
             }
         }
 
@@ -631,12 +632,20 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         }
 
         if (id == R.id.action_show_folder) {
-            Intent intent = openFolderIntent(this, storage.getStoragePath());
+            Intent intent = item.getIntent();
             startActivity(intent);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public Intent openFolderIntent(long t) {
+        return openFolderIntent(this, storage.find(t));
+    }
+
+    public static Intent openFolderIntent(Context context, Storage.Torrent t) {
+        return openFolderIntent(context, t.path);
     }
 
     public static Intent openFolderIntent(Context context, Uri p) {
