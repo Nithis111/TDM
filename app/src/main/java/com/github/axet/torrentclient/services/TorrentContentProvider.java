@@ -68,6 +68,15 @@ public class TorrentContentProvider extends ContentProvider {
         return type;
     }
 
+    public static String getAuthority() {
+        return info.authority;
+    }
+
+    public static Uri getStorageUri() {
+        Uri u = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(info.authority).path("storage").build();
+        return u;
+    }
+
     public static Uri getUriForFile(String hash, String file) {
         File f = new File(hash, file);
         String name = f.toString();

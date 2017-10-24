@@ -497,7 +497,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         folder.setVisible(false);
         Storage s = storage;
         if (s != null) {
-            Intent intent = openFolderIntent(this, s.getStoragePath());
+            Intent intent = openFolderIntent(this, s.getStoragePath(), null); // TorrentContentProvider.getStorageUri());
             if (MainActivity.isCallable(this, intent)) {
                 folder.setVisible(true);
                 folder.setIntent(intent);
@@ -645,10 +645,10 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
     }
 
     public static Intent openFolderIntent(Context context, Storage.Torrent t) {
-        return openFolderIntent(context, t.path);
+        return openFolderIntent(context, t.path, null); // TorrentContentProvider.getUriForFile(t.hash, ""));
     }
 
-    public static Intent openFolderIntent(Context context, Uri p) {
+    public static Intent openFolderIntent(Context context, Uri p, Uri saf) {
         boolean perms = false;
         String s = p.getScheme();
         if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21) { // convert content:///primary to file://
@@ -660,6 +660,8 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
                     f = new File(f, ss[1]);
                 p = Uri.fromFile(f);
             } else {
+                if (saf != null)
+                    p = saf;
                 perms = true;
             }
         }
@@ -673,7 +675,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
     public static boolean isCallable(Context context, Intent intent) {
         Uri p = intent.getData();
         String s = p.getScheme();
-        if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21) {
+        if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21 && !p.getAuthority().equals(TorrentContentProvider.getAuthority())) {
             String tree = DocumentsContract.getTreeDocumentId(p);
             String[] ss = tree.split(":"); // 1D13-0F08:private
             if (!ss[0].equals(Storage.STORAGE_PRIMARY)) {
