@@ -631,7 +631,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         }
 
         if (id == R.id.action_show_folder) {
-            Intent intent = openFolderIntent(this, TorrentContentProvider.getUriStorage());
+            Intent intent = openFolderIntent(this, storage.getStoragePath());
             startActivity(intent);
             return true;
         }
