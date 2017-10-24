@@ -309,6 +309,10 @@ public class TorrentPlayer {
 
     Decoder[] DECODERS = new Decoder[]{RAR, ZIP};
 
+    public static String getType(PlayerFile f) {
+        return TorrentContentProvider.getTypeName(f.getName());
+    }
+
     public static boolean isVideo(String type) {
         if (type != null)
             return type.startsWith("video");
@@ -328,7 +332,7 @@ public class TorrentPlayer {
             if (type.startsWith(s))
                 return true;
         }
-        return true; // rest true
+        return true; // make default true
     }
 
     public static void save(Context context, TorrentPlayer player) {
@@ -655,7 +659,7 @@ public class TorrentPlayer {
         playingUri = f.uri;
         playingFile = f;
         if (f.tor.file.getBytesCompleted() == f.tor.file.getLength()) {
-            if (!isSupported(TorrentContentProvider.getType(f.getName()))) {
+            if (!isSupported(TorrentPlayer.getType(f))) {
                 prepare(f.uri);
             }
         }
@@ -676,7 +680,7 @@ public class TorrentPlayer {
 
     public void play() {
         if (video != getPlaying()) { // already playing video? just call start()
-            String type = TorrentContentProvider.getType(playingFile.getName());
+            String type = getType(playingFile);
             if (isVideo(type)) {
                 PlayerActivity.startActivity(context);
                 return;

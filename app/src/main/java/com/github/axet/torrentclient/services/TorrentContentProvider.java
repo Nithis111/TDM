@@ -62,10 +62,24 @@ public class TorrentContentProvider extends ContentProvider {
     };
     Handler handler = new Handler();
 
-    public static String getType(String file) {
-        String type = MimeTypeMap.getFileExtensionFromUrl(Uri.encode(file));
+    public static String getTypePath(String filePath) {
+        String type = MimeTypeMap.getFileExtensionFromUrl(Uri.encode(filePath));
         type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(type);
         return type;
+    }
+
+    public static String getTypeName(String fileName) {
+        String ext = Storage.getExt(fileName);
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+    }
+
+    public static String getAuthority() {
+        return info.authority;
+    }
+
+    public static Uri getStorageUri() {
+        Uri u = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(info.authority).path("storage").build();
+        return u;
     }
 
     public static Uri getUriForFile(String hash, String file) {
@@ -210,7 +224,7 @@ public class TorrentContentProvider extends ContentProvider {
         if (f == null)
             return null;
 
-        return getType(f.getName());
+        return TorrentPlayer.getType(f);
     }
 
     @Nullable

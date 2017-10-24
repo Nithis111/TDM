@@ -20,6 +20,7 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.github.axet.androidlibrary.app.Storage;
 import com.github.axet.androidlibrary.services.FileProvider;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.activities.MainActivity;
@@ -57,9 +58,8 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
         public int selected = -1;
 
         public String getFileType(int index) {
-            TorrentPlayer.PlayerFile f = files.getItem(index);
-            String type = TorrentContentProvider.getType(f.getName());
-            return type;
+            TorrentPlayer.PlayerFile f = getItem(index);
+            return TorrentPlayer.getType(f);
         }
 
         @Override
@@ -235,6 +235,15 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
             public void onClick(View v) {
                 if (app.player != null && app.player != player) {
                     boolean p = app.player.isPlaying();
+                    if (p) { // if we point to unsupported file, open externaly
+                        int index = files.selected;
+                        String type = files.getFileType(index);
+                        if (!TorrentPlayer.isSupported(type)) {
+                            Uri uri = files.getItem(index).uri;
+                            openIntent(uri, type);
+                            return;
+                        }
+                    }
                     app.playerStop();
                     if (p) { // if were playing show play button; else start playing current
                         playUpdate(false);
@@ -270,10 +279,7 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                         playUpdate(true);
                     } else {
                         Uri uri = files.getItem(index).uri;
-                        Intent intent = new Intent();
-                        intent.setDataAndType(uri, type);
-                        FileProvider.grantPermissions(getContext(), intent, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                        startActivity(intent);
+                        openIntent(uri, type);
                     }
                 }
             }
@@ -378,6 +384,13 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
         }
 
         return v;
+    }
+
+    void openIntent(Uri uri, String type) {
+        Intent intent = new Intent();
+        intent.setDataAndType(uri, type);
+        FileProvider.grantPermissions(getContext(), intent, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        startActivity(intent);
     }
 
     public void openPlayer(long t) {
