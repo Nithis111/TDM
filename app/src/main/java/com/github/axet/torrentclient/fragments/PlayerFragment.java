@@ -488,14 +488,22 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
 
     void playUpdate() {
         boolean playing = false;
-        if (player != null) {
+        final MainApplication app = ((MainApplication) getContext().getApplicationContext());
+        if (app.player != null && app.player != player) {
+            playing = app.player.getPlaying() != -1;
+        } else if (player != null) {
             playing = player.getPlaying() != -1;
         }
         playUpdate(playing);
     }
 
     void playUpdate(boolean playing) {
-        if (playing) {
+        boolean dup = false;
+        final MainApplication app = ((MainApplication) getContext().getApplicationContext());
+        if (app.player != null && app.player != player) {
+            dup = true;
+        }
+        if (!dup && playing) {
             play.setImageResource(R.drawable.ic_pause_24dp);
         } else {
             if (player != null) {
@@ -506,7 +514,10 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                 if (index != -1) {
                     String type = files.getFileType(index);
                     if (TorrentPlayer.isSupported(type)) {
-                        play.setImageResource(R.drawable.play);
+                        if (playing)
+                            play.setImageResource(R.drawable.ic_pause_24dp);
+                        else
+                            play.setImageResource(R.drawable.play);
                     } else {
                         play.setImageResource(R.drawable.ic_open_in_new_black_24dp);
                     }
