@@ -659,7 +659,7 @@ public class TorrentPlayer {
         playingUri = f.uri;
         playingFile = f;
         if (f.tor.file.getBytesCompleted() == f.tor.file.getLength()) {
-            if (!isSupported(TorrentPlayer.getType(f))) {
+            if (isSupported(TorrentPlayer.getType(f))) {
                 prepare(f.uri);
             }
         }
