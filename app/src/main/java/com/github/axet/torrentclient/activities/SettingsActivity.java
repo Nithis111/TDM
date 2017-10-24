@@ -12,6 +12,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -23,10 +24,12 @@ import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.view.MenuItem;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.github.axet.androidlibrary.widgets.OptimizationPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.StoragePathPreferenceCompat;
+import com.github.axet.androidlibrary.widgets.ThemeUtils;
 import com.github.axet.torrentclient.BuildConfig;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.app.MainApplication;
@@ -48,6 +51,8 @@ import java.io.File;
  */
 public class SettingsActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String[] PERMISSIONS = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
+    Handler handler = new Handler();
 
     /**
      * A preference value change listener that updates the preference's summary
@@ -180,25 +185,55 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
         if (key.equals(MainApplication.PREFERENCE_STORAGE)) {
             String path = sharedPreferences.getString(MainApplication.PREFERENCE_STORAGE, "");
 
-            if (path.startsWith(ContentResolver.SCHEME_CONTENT)) {
-                return;
-            }
+            final Context context = this;
+            int dp10 = ThemeUtils.dp2px(this, 10);
+            ProgressBar progress = new ProgressBar(context);
+            progress.setIndeterminate(true);
+            progress.setPadding(dp10, dp10, dp10, dp10);
+            AlertDialog.Builder b = new AlertDialog.Builder(context);
+            b.setTitle(R.string.migrating_data);
+            b.setView(progress);
+            b.setCancelable(false);
+            final AlertDialog dialog = b.create();
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Storage storage = ((MainApplication) getApplicationContext()).getStorage();
+                    storage.migrateLocalStorage();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            dialog.cancel();
+                        }
+                    });
+                }
+            });
+            Runnable run = new Runnable() {
+                @Override
+                public void run() {
+                    dialog.show();
+                    thread.start();
+                }
+            };
+
             if (path.startsWith(ContentResolver.SCHEME_FILE)) {
                 path = Uri.parse(path).getPath();
+                File f = new File(path);
+                if (!f.canWrite()) {
+                    b = new AlertDialog.Builder(this);
+                    b.setTitle(R.string.storage_path);
+                    b.setMessage(R.string.filedialog_readonly);
+                    AlertDialog d = b.create();
+                    d.show();
+                    SharedPreferences shared = PreferenceManager.getDefaultSharedPreferences(this);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    String old = shared.getString(MainApplication.PREFERENCE_STORAGE, ""); // old
+                    editor.putString(MainApplication.PREFERENCE_STORAGE, old);
+                    editor.commit();
+                    return; // ignore migrate
+                }
             }
-            File f = new File(path);
-            if (!f.canWrite()) {
-                AlertDialog.Builder b = new AlertDialog.Builder(this);
-                b.setTitle(R.string.storage_path);
-                b.setMessage(R.string.filedialog_readonly);
-                Dialog d = b.create();
-                d.show();
-                SharedPreferences shared = PreferenceManager.getDefaultSharedPreferences(this);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                String old = shared.getString(MainApplication.PREFERENCE_STORAGE, ""); // old
-                editor.putString(MainApplication.PREFERENCE_STORAGE, old);
-                editor.commit();
-            }
+            run.run();
         }
     }
 
