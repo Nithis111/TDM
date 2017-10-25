@@ -20,10 +20,13 @@ import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
+import android.support.v7.app.AlertDialog;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.ProgressBar;
 
 import com.github.axet.androidlibrary.app.AlarmManager;
+import com.github.axet.androidlibrary.widgets.ThemeUtils;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.services.TorrentService;
 import com.github.axet.wget.SpeedInfo;
@@ -89,6 +92,33 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
 
     WifiManager.MulticastLock mcastLock;
     protected static MulticastSocket socket;
+
+
+    public static void migrateLocalStorageDialog(Context context, final Handler handler, final Storage storage) {
+        int dp10 = ThemeUtils.dp2px(context, 10);
+        ProgressBar progress = new ProgressBar(context);
+        progress.setIndeterminate(true);
+        progress.setPadding(dp10, dp10, dp10, dp10);
+        AlertDialog.Builder b = new AlertDialog.Builder(context);
+        b.setTitle(R.string.migrating_data);
+        b.setView(progress);
+        b.setCancelable(false);
+        final AlertDialog dialog = b.create();
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                storage.migrateLocalStorage();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dialog.cancel();
+                    }
+                });
+            }
+        });
+        dialog.show();
+        thread.start();
+    }
 
     public static class Torrent {
         Context context;
