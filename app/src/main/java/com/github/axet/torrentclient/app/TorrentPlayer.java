@@ -344,7 +344,7 @@ public class TorrentPlayer {
 
     public static void save(TorrentPlayer player, SharedPreferences.Editor edit) {
         if (player != null) {
-            Uri uri = player.getUri();
+            Uri uri = player.getStateUri();
             if (uri != null) {
                 edit.putString(MainApplication.PREFERENCE_PLAYER, uri.toString());
                 return;
@@ -911,7 +911,7 @@ public class TorrentPlayer {
         context.sendBroadcast(intent);
     }
 
-    public Uri getUri() {
+    public Uri getStateUri() {
         if (player == null)
             return null;
         if (playingUri == null)
