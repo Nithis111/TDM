@@ -1447,12 +1447,12 @@ public class Search extends BaseAdapter implements DialogInterface.OnDismissList
                                         Error(w.getError());
                                     } else {
                                         Storage.Torrent tt = main.addTorrentFromBytes(w.getBuf());
-                                        if (tt == null)
-                                            return;
-                                        String filter = item.search.get("torrent_filter");
-                                        if (filter != null) {
-                                            Libtorrent.torrentFilesCheckAll(tt.t, false);
-                                            Libtorrent.torrentFilesCheckFilter(tt.t, filter, true);
+                                        if (tt != null) {
+                                            String filter = item.search.get("torrent_filter");
+                                            if (filter != null) {
+                                                Libtorrent.torrentFilesCheckAll(tt.t, false);
+                                                Libtorrent.torrentFilesCheckFilter(tt.t, filter, true);
+                                            }
                                         }
                                     }
                                     requestCancel();  // destory looper thread
