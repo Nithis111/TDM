@@ -2,8 +2,6 @@ package com.github.axet.torrentclient.activities;
 
 
 import android.Manifest;
-import android.annotation.TargetApi;
-import android.app.Dialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -24,13 +22,10 @@ import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.view.MenuItem;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.github.axet.androidlibrary.widgets.OptimizationPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.StoragePathPreferenceCompat;
-import com.github.axet.androidlibrary.widgets.ThemeUtils;
-import com.github.axet.torrentclient.BuildConfig;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.app.MainApplication;
 import com.github.axet.torrentclient.app.Storage;
@@ -185,42 +180,11 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
         if (key.equals(MainApplication.PREFERENCE_STORAGE)) {
             String path = sharedPreferences.getString(MainApplication.PREFERENCE_STORAGE, "");
 
-            final Context context = this;
-            int dp10 = ThemeUtils.dp2px(this, 10);
-            ProgressBar progress = new ProgressBar(context);
-            progress.setIndeterminate(true);
-            progress.setPadding(dp10, dp10, dp10, dp10);
-            AlertDialog.Builder b = new AlertDialog.Builder(context);
-            b.setTitle(R.string.migrating_data);
-            b.setView(progress);
-            b.setCancelable(false);
-            final AlertDialog dialog = b.create();
-            final Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Storage storage = ((MainApplication) getApplicationContext()).getStorage();
-                    storage.migrateLocalStorage();
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            dialog.cancel();
-                        }
-                    });
-                }
-            });
-            Runnable run = new Runnable() {
-                @Override
-                public void run() {
-                    dialog.show();
-                    thread.start();
-                }
-            };
-
             if (path.startsWith(ContentResolver.SCHEME_FILE)) {
                 path = Uri.parse(path).getPath();
                 File f = new File(path);
                 if (!f.canWrite()) {
-                    b = new AlertDialog.Builder(this);
+                    AlertDialog.Builder b = new AlertDialog.Builder(this);
                     b.setTitle(R.string.storage_path);
                     b.setMessage(R.string.filedialog_readonly);
                     AlertDialog d = b.create();
@@ -233,7 +197,9 @@ public class SettingsActivity extends AppCompatActivity implements SharedPrefere
                     return; // ignore migrate
                 }
             }
-            run.run();
+
+            Storage storage = ((MainApplication) getApplicationContext()).getStorage();
+            Storage.migrateLocalStorageDialog(this, handler, storage);
         }
     }
 
