@@ -93,7 +93,6 @@ public class Storage extends com.github.axet.androidlibrary.app.Storage implemen
     WifiManager.MulticastLock mcastLock;
     protected static MulticastSocket socket;
 
-
     public static void migrateLocalStorageDialog(Context context, final Handler handler, final Storage storage) {
         int dp10 = ThemeUtils.dp2px(context, 10);
         ProgressBar progress = new ProgressBar(context);

@@ -746,6 +746,9 @@ public class TorrentPlayer {
             public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
             }
 
+            @Override
+            public void onRepeatModeChanged(int repeatMode) {
+            }
         });
     }
 
