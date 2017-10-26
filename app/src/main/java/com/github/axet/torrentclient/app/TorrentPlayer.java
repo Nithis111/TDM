@@ -310,7 +310,7 @@ public class TorrentPlayer {
     Decoder[] DECODERS = new Decoder[]{RAR, ZIP};
 
     public static String getType(PlayerFile f) {
-        return TorrentContentProvider.getTypeName(f.getName());
+        return TorrentContentProvider.getTypeByName(f.getName());
     }
 
     public static boolean isVideo(String type) {
@@ -322,12 +322,12 @@ public class TorrentPlayer {
     public static boolean isSupported(String type) {
         if (type == null || type.isEmpty())
             return false;
-        String[] skip = new String[]{"image", "text", "application/pdf"}; // MediaPlayer will open jpg and wait forever
+        String[] skip = new String[]{"image/", "text/", "application/pdf"}; // MediaPlayer will open jpg and wait forever
         for (String s : skip) {
             if (type.startsWith(s))
                 return false;
         }
-        String[] support = new String[]{"audio"};
+        String[] support = new String[]{"audio/", "video/", "application/ogg"};
         for (String s : support) {
             if (type.startsWith(s))
                 return true;
