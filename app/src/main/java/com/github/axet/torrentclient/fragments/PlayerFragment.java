@@ -237,10 +237,15 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                     boolean p = app.player.isPlaying();
                     if (p) { // if we point to unsupported file, open externaly
                         int index = files.selected;
-                        String type = files.getFileType(index);
-                        if (!TorrentPlayer.isSupported(type)) {
-                            Uri uri = files.getItem(index).uri;
-                            openIntent(uri, type);
+                        if (index != -1) {
+                            String type = files.getFileType(index);
+                            if (!TorrentPlayer.isSupported(type)) {
+                                Uri uri = files.getItem(index).uri;
+                                openIntent(uri, type);
+                                return;
+                            }
+                        } else {
+                            app.player.pause();
                             return;
                         }
                     }
@@ -522,7 +527,10 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                         play.setImageResource(R.drawable.ic_open_in_new_black_24dp);
                     }
                 } else {
-                    play.setImageResource(R.drawable.play);
+                    if (playing)
+                        play.setImageResource(R.drawable.ic_pause_24dp);
+                    else
+                        play.setImageResource(R.drawable.play);
                 }
             } else {
                 play.setImageResource(R.drawable.play);

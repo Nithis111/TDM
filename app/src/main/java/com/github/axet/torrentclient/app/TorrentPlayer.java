@@ -321,7 +321,7 @@ public class TorrentPlayer {
 
     public static boolean isSupported(String type) {
         if (type == null || type.isEmpty())
-            return false;
+            return true;
         String[] skip = new String[]{"image/", "text/", "application/pdf"}; // MediaPlayer will open jpg and wait forever
         for (String s : skip) {
             if (type.startsWith(s))

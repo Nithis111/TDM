@@ -73,6 +73,10 @@ public class TorrentContentProvider extends ContentProvider {
         if (ext == null || ext.isEmpty()) {
             return "application/octet-stream";
         }
+        switch (ext) {
+            case "opus":
+                return "audio/opus";
+        }
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
     }
 
