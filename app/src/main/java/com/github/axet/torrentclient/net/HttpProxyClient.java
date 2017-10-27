@@ -134,7 +134,15 @@ public class HttpProxyClient extends HttpClient {
     public void update(Context context) {
         final SharedPreferences shared = PreferenceManager.getDefaultSharedPreferences(context);
         String name = shared.getString(MainApplication.PREFERENCE_PROXY, "");
+
         enabled = !name.isEmpty();
+
+        if (!enabled) {
+            clearProxy();
+            this.name = "";
+            return;
+        }
+
         if (!this.name.equals(name)) {
             this.name = name;
 
@@ -144,13 +152,10 @@ public class HttpProxyClient extends HttpClient {
                 proxy = new GoogleProxy(this);
             }
             if (name.equals(TorProxy.NAME)) {
-                proxy = new TorProxy(this);
+                proxy = new TorProxy(context, this);
             }
         }
 
-        if (!enabled) {
-            clearProxy();
-        }
     }
 
     @Override

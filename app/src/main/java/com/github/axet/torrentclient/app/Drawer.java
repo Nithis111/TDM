@@ -41,6 +41,7 @@ import com.github.axet.torrentclient.activities.MainActivity;
 import com.github.axet.torrentclient.navigators.Search;
 import com.github.axet.torrentclient.navigators.Torrents;
 import com.github.axet.torrentclient.net.GoogleProxy;
+import com.github.axet.torrentclient.net.TorProxy;
 import com.github.axet.torrentclient.widgets.AddDrawerItem;
 import com.github.axet.torrentclient.widgets.ProgressDrawerItem;
 import com.github.axet.torrentclient.widgets.ProxyDrawerItem;
@@ -56,6 +57,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import libtorrent.Libtorrent;
@@ -90,7 +92,7 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
     Boolean infoPort;
     long infoTime; // last time checked
 
-    List<ProxyDrawerItem.ViewHolder> viewList = new ArrayList<>();
+    HashMap<ProxyDrawerItem, ProxyDrawerItem.ViewHolder> viewList = new HashMap<>();
 
     ItemTouchHelper touchHelper;
 
@@ -173,6 +175,9 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
         } catch (PackageManager.NameNotFoundException e) {
             ver.setVisibility(View.GONE);
         }
+    }
+
+    public void close() {
     }
 
     public void setCheckedItem(long id) {
@@ -575,11 +580,15 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
                 .withIdentifier(R.string.web_proxy_s)
                 .withName(R.string.web_proxy_s));
 
+        viewList.clear();
+
         ProxyDrawerItem google = createProxy(GoogleProxy.NAME, R.string.google_proxy);
         list.add(google);
 
-        //ProxyDrawerItem tor = createProxy(TorProxy.NAME, R.string.tor_proxy);
-        //list.add(tor);
+        if (TorProxy.isOrbotInstalled(context)) {
+            ProxyDrawerItem tor = createProxy(TorProxy.NAME, R.string.tor_proxy);
+            list.add(tor);
+        }
     }
 
     ProxyDrawerItem createProxy(final String tag, final int res) {
@@ -589,7 +598,7 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
             @Override
             public void bindView(final ViewHolder viewHolder) {
                 super.bindView(viewHolder);
-                viewList.add(viewHolder);
+                viewList.put(this, viewHolder);
                 viewHolder.w.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -600,7 +609,7 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
                             edit.putString(MainApplication.PREFERENCE_PROXY, "");
                         }
                         edit.commit();
-                        for (ViewHolder h : viewList) {
+                        for (ViewHolder h : viewList.values()) {
                             if (h == viewHolder)
                                 continue;
                             h.w.setChecked(false);

@@ -551,6 +551,11 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
     public void close() {
         delayedInit = null; // prevent delayed delayedInit
 
+        if (drawer != null) {
+            drawer.close();
+            drawer = null;
+        }
+
         if (dialog != null) {
             dialog.close();
             dialog = null;
