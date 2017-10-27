@@ -244,9 +244,6 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                                 openIntent(uri, type);
                                 return;
                             }
-                        } else {
-                            app.player.pause();
-                            return;
                         }
                     }
                     app.playerStop();
