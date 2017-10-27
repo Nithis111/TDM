@@ -588,6 +588,14 @@ public class Drawer implements com.mikepenz.materialdrawer.Drawer.OnDrawerItemCl
         if (TorProxy.isOrbotInstalled(context)) {
             ProxyDrawerItem tor = createProxy(TorProxy.NAME, R.string.tor_proxy);
             list.add(tor);
+        } else {
+            final SharedPreferences shared = PreferenceManager.getDefaultSharedPreferences(context);
+            String tag = shared.getString(MainApplication.PREFERENCE_PROXY, "");
+            if (tag.equals(TorProxy.NAME)) {
+                SharedPreferences.Editor edit = shared.edit();
+                edit.putString(MainApplication.PREFERENCE_PROXY, "");
+                edit.commit();
+            }
         }
     }
 
