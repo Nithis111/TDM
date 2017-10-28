@@ -63,19 +63,20 @@ public class TorrentContentProvider extends ContentProvider {
     Handler handler = new Handler();
 
     public static String getTypeByPath(String filePath) {
-        String type = MimeTypeMap.getFileExtensionFromUrl(Uri.encode(filePath));
-        type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(type);
-        return type;
+        String ext = MimeTypeMap.getFileExtensionFromUrl(Uri.encode(filePath));
+        return getTypeByName(ext);
     }
 
     public static String getTypeByName(String fileName) {
         String ext = Storage.getExt(fileName);
         if (ext == null || ext.isEmpty()) {
-            return "application/octet-stream";
+            return "application/octet-stream"; // replace 'null'
         }
         switch (ext) {
             case "opus":
-                return "audio/opus";
+                return "audio/opus"; // android missing
+            case "ogg":
+                return "audio/ogg"; // replace 'application/ogg'
         }
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
     }
