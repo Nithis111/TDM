@@ -6,13 +6,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 
-import com.github.axet.androidlibrary.widgets.OptimizationPreferenceCompat;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-
-import javax.net.SocketFactory;
 
 import cz.msebera.android.httpclient.HttpHost;
 import cz.msebera.android.httpclient.HttpRequest;

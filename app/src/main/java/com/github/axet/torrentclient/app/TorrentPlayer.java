@@ -320,17 +320,17 @@ public class TorrentPlayer {
     }
 
     public static boolean isSupported(String type) {
-        if (type == null || type.isEmpty())
-            return true;  // make default true
-        String[] skip = new String[]{"image/", "text/", "application/pdf"}; // MediaPlayer will open jpg and wait forever
-        for (String s : skip) {
-            if (type.startsWith(s))
-                return false;
-        }
-        String[] support = new String[]{"audio/", "video/", "application/ogg"};
-        for (String s : support) {
-            if (type.startsWith(s))
-                return true;
+        if (type != null && !type.isEmpty()) {
+            String[] skip = new String[]{"image/", "text/", "application/pdf"}; // MediaPlayer will open jpg and wait forever
+            for (String s : skip) {
+                if (type.startsWith(s))
+                    return false;
+            }
+            String[] support = new String[]{"audio/", "video/"};
+            for (String s : support) {
+                if (type.startsWith(s))
+                    return true;
+            }
         }
         return true; // make default true
     }

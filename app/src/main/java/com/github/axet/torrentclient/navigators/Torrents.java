@@ -388,13 +388,14 @@ public class Torrents extends BaseAdapter implements DialogInterface.OnDismissLi
             }
 
             final ImageView open = (ImageView) convertView.findViewById(R.id.recording_player_open);
+            final View openSpace = convertView.findViewById(R.id.recording_player_open_space);
             final Intent intent = MainActivity.openFolderIntent(context, t);
             if (!MainActivity.isCallable(context, intent)) {
                 open.setVisibility(View.GONE);
-                open.setVisibility(View.GONE);
+                openSpace.setVisibility(View.GONE);
             } else {
                 open.setVisibility(View.VISIBLE);
-                open.setVisibility(View.VISIBLE);
+                openSpace.setVisibility(View.VISIBLE);
             }
             open.setOnClickListener(new View.OnClickListener() {
                 @Override
