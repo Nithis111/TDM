@@ -233,19 +233,17 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                int index = files.selected;
+                if (index != -1) {
+                    String type = files.getFileType(index);
+                    if (!TorrentPlayer.isSupported(type)) {
+                        Uri uri = files.getItem(index).uri;
+                        openIntent(uri, type);
+                        return;
+                    }
+                }
                 if (app.player != null && app.player != player) {
                     boolean p = app.player.isPlaying();
-                    if (p) { // if we point to unsupported file, open externaly
-                        int index = files.selected;
-                        if (index != -1) {
-                            String type = files.getFileType(index);
-                            if (!TorrentPlayer.isSupported(type)) {
-                                Uri uri = files.getItem(index).uri;
-                                openIntent(uri, type);
-                                return;
-                            }
-                        }
-                    }
                     app.playerStop();
                     if (p) { // if were playing show play button; else start playing current
                         playUpdate(false);
@@ -272,17 +270,10 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
                     MainApplication app = ((MainApplication) getContext().getApplicationContext());
                     TorrentPlayer.save(getContext(), app.player);
                 } else { // play selected file
-                    int index = files.selected;
-                    String type = files.getFileType(index);
-                    if (TorrentPlayer.isSupported(type)) {
-                        play(index);
-                        files.selected = -1;
-                        files.notifyDataSetChanged();
-                        playUpdate(true);
-                    } else {
-                        Uri uri = files.getItem(index).uri;
-                        openIntent(uri, type);
-                    }
+                    play(index);
+                    files.selected = -1;
+                    files.notifyDataSetChanged();
+                    playUpdate(true);
                 }
             }
         });
@@ -500,38 +491,29 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
     }
 
     void playUpdate(boolean playing) {
-        boolean dup = false;
-        final MainApplication app = ((MainApplication) getContext().getApplicationContext());
-        if (app.player != null && app.player != player) {
-            dup = true;
-        }
-        if (!dup && playing) {
-            play.setImageResource(R.drawable.ic_pause_24dp);
-        } else {
-            if (player != null) {
-                int index = files.selected;
-                if (index == -1) {
-                    index = player.getPlaying();
-                }
-                if (index != -1) {
-                    String type = files.getFileType(index);
-                    if (TorrentPlayer.isSupported(type)) {
-                        if (playing)
-                            play.setImageResource(R.drawable.ic_pause_24dp);
-                        else
-                            play.setImageResource(R.drawable.play);
-                    } else {
-                        play.setImageResource(R.drawable.ic_open_in_new_black_24dp);
-                    }
-                } else {
+        if (player != null) {
+            int index = files.selected;
+            if (index == -1) {
+                index = player.getPlaying();
+            }
+            if (index != -1) {
+                String type = files.getFileType(index);
+                if (TorrentPlayer.isSupported(type)) {
                     if (playing)
                         play.setImageResource(R.drawable.ic_pause_24dp);
                     else
                         play.setImageResource(R.drawable.play);
+                } else {
+                    play.setImageResource(R.drawable.ic_open_in_new_black_24dp);
                 }
             } else {
-                play.setImageResource(R.drawable.play);
+                if (playing)
+                    play.setImageResource(R.drawable.ic_pause_24dp);
+                else
+                    play.setImageResource(R.drawable.play);
             }
+        } else {
+            play.setImageResource(R.drawable.play);
         }
     }
 }
