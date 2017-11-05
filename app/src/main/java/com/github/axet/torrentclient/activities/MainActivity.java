@@ -505,7 +505,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         folder.setVisible(false);
         Storage s = storage;
         if (s != null) {
-            Intent intent = openFolderIntent(this, s.getStoragePath(), null); // TorrentContentProvider.getStorageUri());
+            Intent intent = Storage.openFolderIntent(this, s.getStoragePath(), null); // TorrentContentProvider.getStorageUri());
             if (MainActivity.isCallable(this, intent)) {
                 folder.setVisible(true);
                 folder.setIntent(intent);
