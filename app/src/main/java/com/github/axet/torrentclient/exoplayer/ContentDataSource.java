@@ -92,6 +92,8 @@ public final class ContentDataSource implements DataSource {
       } else {
         long assetFileDescriptorLength = assetFileDescriptor.getLength();
         if (assetFileDescriptorLength == AssetFileDescriptor.UNKNOWN_LENGTH) {
+          // The asset must extend to the end of the file.
+          bytesRemaining = ((FileInputStream) inputStream).getChannel().size();
           if (bytesRemaining == 0) {
             // FileInputStream.available() returns 0 if the remaining length cannot be determined,
             // or if it's greater than Integer.MAX_VALUE. We don't know the true length in either
