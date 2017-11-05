@@ -256,7 +256,7 @@ public class TorrentContentProvider extends ContentProvider {
     @Nullable
     @Override
     public AssetFileDescriptor openAssetFile(@NonNull Uri uri, @NonNull String mode) throws FileNotFoundException {
-        return super.openAssetFile(uri, "rw"); // force rw mode
+        return super.openAssetFile(uri, mode);
     }
 
     @Nullable
