@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ProviderInfo;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
@@ -12,6 +13,7 @@ import android.os.CancellationSignal;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -253,28 +255,33 @@ public class TorrentContentProvider extends ContentProvider {
 
     @Nullable
     @Override
+    public AssetFileDescriptor openAssetFile(@NonNull Uri uri, @NonNull String mode) throws FileNotFoundException {
+        return super.openAssetFile(uri, "rw"); // force rw mode
+    }
+
+    @Nullable
+    @Override
     public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
-        TorrentPlayer.PlayerFile file = getPlayerFile(uri);
+        final TorrentPlayer.PlayerFile file = getPlayerFile(uri);
         if (file == null)
             return null;
 
-        final TorrentPlayer.PlayerFile f = file;
         final int fileMode = FileProvider.modeToMode(mode);
 
         deleteTmp(); // will not delete opened files
 
         try {
-            if (f.file != null) {
-                if (mode.equals("r")) { // r
-                    final ParcelFileDescriptor[] ff = ParcelFileDescriptor.createPipe();
+            if (file.file != null) {
+                if (mode.equals("r")) { // r - can be pipe
+                    ParcelFileDescriptor[] ff = ParcelFileDescriptor.createPipe();
                     final ParcelFileDescriptor r = ff[0];
+                    final ParcelFileDescriptor w = ff[1];
                     Thread thread = new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            ParcelFileDescriptor w = ff[1];
                             OutputStream os = new ParcelFileDescriptor.AutoCloseOutputStream(w);
                             try {
-                                f.file.copy(os);
+                                file.file.copy(os);
                             } catch (RuntimeException e) {
                                 Log.d(TAG, "Error reading archive", e);
                             } finally {
@@ -295,7 +302,7 @@ public class TorrentContentProvider extends ContentProvider {
                     tmp = File.createTempFile(FILE_PREFIX, FILE_SUFFIX, tmp);
                     FileOutputStream os = new FileOutputStream(tmp);
                     try {
-                        f.file.copy(os);
+                        file.file.copy(os);
                     } finally {
                         try {
                             os.close();
@@ -306,7 +313,7 @@ public class TorrentContentProvider extends ContentProvider {
                     return ParcelFileDescriptor.open(tmp, fileMode);
                 }
             } else {
-                Uri u = f.getFile();
+                Uri u = file.getFile();
                 String s = u.getScheme();
                 if (s.startsWith(ContentResolver.SCHEME_CONTENT)) {
                     ContentResolver resolver = getContext().getContentResolver();
