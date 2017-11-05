@@ -20,6 +20,7 @@ import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
@@ -710,7 +711,7 @@ public class TorrentPlayer {
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
         MediaSource source = new ExtractorMediaSource(u, dataSourceFactory, extractorsFactory, null, null);
         player.prepare(source);
-        player.addListener(new ExoPlayer.EventListener() {
+        player.addListener(new Player.EventListener() {
             @Override
             public void onTimelineChanged(Timeline timeline, Object manifest) {
             }
@@ -725,10 +726,10 @@ public class TorrentPlayer {
 
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-                if (playbackState == ExoPlayer.STATE_READY) {
+                if (playbackState == Player.STATE_READY) {
                     ; // getDuration();
                 }
-                if (playbackState == ExoPlayer.STATE_ENDED)
+                if (playbackState == Player.STATE_ENDED)
                     next(playingIndex + 1);
             }
 
