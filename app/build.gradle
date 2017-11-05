@@ -13,8 +13,8 @@ android {
         applicationId "com.github.axet.torrentclient"
         minSdkVersion 15
         targetSdkVersion 24 // 25+ unable to open file:// links
-        versionCode 523
-        versionName "3.4.39"
+        versionCode 524
+        versionName "3.4.40"
     }
     signingConfigs {
         release {
