@@ -142,44 +142,11 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
     }
 
     public static Intent openFolderIntent(Context context, Storage.Torrent t) {
-        return openFolderIntent(context, t.path, null); // TorrentContentProvider.getUriForFile(t.hash, ""));
-    }
-
-    public static Intent openFolderIntent(Context context, Uri p, Uri local) {
-        boolean perms = false;
-        String s = p.getScheme();
-        if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21) { // convert content:///primary to file://
-            String tree = DocumentsContract.getTreeDocumentId(p);
-            String[] ss = tree.split(":"); // 1D13-0F08:private
-            if (ss[0].equals(Storage.STORAGE_PRIMARY)) {
-                File f = Environment.getExternalStorageDirectory();
-                if (ss.length > 1)
-                    f = new File(f, ss[1]);
-                p = Uri.fromFile(f);
-            } else {
-                if (local != null)
-                    p = local; // TorrentContentProvider url
-                perms = true;
-            }
-        }
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(p, "resource/folder");
-        if (perms)
-            FileProvider.grantPermissions(context, intent, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
-        return intent;
+        return Storage.openFolderIntent(context, t.path, null); // TorrentContentProvider.getUriForFile(t.hash, ""));
     }
 
     public static boolean isCallable(Context context, Intent intent) {
-        Uri p = intent.getData();
-        String s = p.getScheme();
-        if (s.equals(ContentResolver.SCHEME_CONTENT) && Build.VERSION.SDK_INT >= 21 && !p.getAuthority().equals(TorrentContentProvider.getAuthority())) {
-            String tree = DocumentsContract.getTreeDocumentId(p);
-            String[] ss = tree.split(":"); // 1D13-0F08:private
-            if (!ss[0].equals(Storage.STORAGE_PRIMARY)) {
-                return false;
-            }
-        }
-        return OptimizationPreferenceCompat.isCallable(context, intent);
+        return Storage.isFolderCallable(context, intent, TorrentContentProvider.getAuthority());
     }
 
     public interface TorrentFragmentInterface {
