@@ -1,8 +1,6 @@
 package com.github.axet.torrentclient.services;
 
-import android.content.ContentProvider;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ProviderInfo;
 import android.content.res.AssetFileDescriptor;
@@ -10,7 +8,6 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.CancellationSignal;
-import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
@@ -32,7 +29,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.TreeSet;
 
 // <application>
 //   <provider
@@ -209,13 +205,10 @@ public class TorrentContentProvider extends StorageProvider {
         if (isStorageUri(uri)) {
             return super.getType(uri);
         }
-        MainApplication app = ((MainApplication) getContext().getApplicationContext());
-        if (app.player == null)
+        final TorrentPlayer.PlayerFile file = getPlayerFile(uri);
+        if (file == null)
             return null;
-        TorrentPlayer.PlayerFile f = app.player.find(uri);
-        if (f == null)
-            return null;
-        return TorrentPlayer.getType(f);
+        return TorrentPlayer.getType(file);
     }
 
     @Nullable
@@ -294,7 +287,6 @@ public class TorrentContentProvider extends StorageProvider {
                 Uri u = file.getFile();
                 String s = u.getScheme();
                 if (s.startsWith(ContentResolver.SCHEME_CONTENT)) {
-                    ContentResolver resolver = getContext().getContentResolver();
                     return resolver.openFileDescriptor(u, mode);
                 } else if (s.startsWith(ContentResolver.SCHEME_FILE)) {
                     File ff = new File(u.getPath());
