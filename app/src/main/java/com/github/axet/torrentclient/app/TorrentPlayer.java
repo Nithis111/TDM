@@ -14,7 +14,6 @@ import android.util.Log;
 import com.github.axet.androidlibrary.app.AlarmManager;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.activities.PlayerActivity;
-import com.github.axet.torrentclient.exoplayer.DefaultDataSourceFactory;
 import com.github.axet.torrentclient.services.TorrentContentProvider;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -37,6 +36,7 @@ import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import net.lingala.zip4j.core.NativeStorage;
