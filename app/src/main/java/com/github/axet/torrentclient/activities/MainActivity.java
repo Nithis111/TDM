@@ -10,18 +10,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.provider.DocumentsContract;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -43,11 +38,10 @@ import android.widget.Toast;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.github.axet.androidlibrary.app.AlarmManager;
-import com.github.axet.androidlibrary.services.FileProvider;
+import com.github.axet.androidlibrary.services.StorageProvider;
 import com.github.axet.androidlibrary.widgets.AboutPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.HeaderGridView;
 import com.github.axet.androidlibrary.widgets.OpenFileDialog;
-import com.github.axet.androidlibrary.widgets.OptimizationPreferenceCompat;
 import com.github.axet.androidlibrary.widgets.StoragePathPreferenceCompat;
 import com.github.axet.torrentclient.R;
 import com.github.axet.torrentclient.app.Drawer;
@@ -142,11 +136,11 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
     }
 
     public static Intent openFolderIntent(Context context, Storage.Torrent t) {
-        return Storage.openFolderIntent(context, t.path, null); // TorrentContentProvider.getUriForFile(t.hash, ""));
+        return StorageProvider.openFolderIntent(context, t.path);
     }
 
     public static boolean isCallable(Context context, Intent intent) {
-        return Storage.isFolderCallable(context, intent, TorrentContentProvider.getAuthority());
+        return StorageProvider.isFolderCallable(context, intent, TorrentContentProvider.getAuthority());
     }
 
     public interface TorrentFragmentInterface {
@@ -505,7 +499,7 @@ public class MainActivity extends AppCompatActivity implements AbsListView.OnScr
         folder.setVisible(false);
         Storage s = storage;
         if (s != null) {
-            Intent intent = Storage.openFolderIntent(this, s.getStoragePath(), null); // TorrentContentProvider.getStorageUri());
+            Intent intent = StorageProvider.openFolderIntent(this, s.getStoragePath()); // TorrentContentProvider.getStorageUri());
             if (MainActivity.isCallable(this, intent)) {
                 folder.setVisible(true);
                 folder.setIntent(intent);
