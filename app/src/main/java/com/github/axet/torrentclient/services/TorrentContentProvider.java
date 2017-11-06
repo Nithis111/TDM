@@ -133,9 +133,9 @@ public class TorrentContentProvider extends StorageProvider {
     }
 
     @Override
-    public void attachInfo(Context context, ProviderInfo info) {
-        super.attachInfo(context, info);
-        TorrentContentProvider.info = info;
+    public void attachInfo(Context context, ProviderInfo i) {
+        super.attachInfo(context, i);
+        info = i;
         // Sanity check our security
         if (info.exported) {
             throw new SecurityException("Provider must not be exported");
