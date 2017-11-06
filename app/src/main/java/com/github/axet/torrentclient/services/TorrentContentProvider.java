@@ -1,8 +1,6 @@
 package com.github.axet.torrentclient.services;
 
-import android.content.ContentProvider;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ProviderInfo;
 import android.content.res.AssetFileDescriptor;
@@ -10,7 +8,6 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.CancellationSignal;
-import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
@@ -32,7 +29,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.TreeSet;
 
 // <application>
 //   <provider
@@ -54,7 +50,6 @@ public class TorrentContentProvider extends StorageProvider {
     public static String FILE_PREFIX = "player";
     public static String FILE_SUFFIX = ".tmp";
 
-    public static int MD5_SIZE = 32;
     public static int HASH_SIZE = 40;
 
     HashMap<TorrentPlayer, Long> players = new HashMap<>();
@@ -64,7 +59,6 @@ public class TorrentContentProvider extends StorageProvider {
             freePlayers();
         }
     };
-    Handler handler = new Handler();
 
     public static String getTypeByPath(String filePath) {
         String ext = MimeTypeMap.getFileExtensionFromUrl(Uri.encode(filePath));
@@ -139,9 +133,9 @@ public class TorrentContentProvider extends StorageProvider {
     }
 
     @Override
-    public void attachInfo(Context context, ProviderInfo info) {
-        super.attachInfo(context, info);
-        TorrentContentProvider.info = info;
+    public void attachInfo(Context context, ProviderInfo i) {
+        super.attachInfo(context, i);
+        info = i;
         // Sanity check our security
         if (info.exported) {
             throw new SecurityException("Provider must not be exported");
@@ -182,18 +176,15 @@ public class TorrentContentProvider extends StorageProvider {
     @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder, CancellationSignal cancellationSignal) {
-        if (uri.getPathSegments().get(0).length() == MD5_SIZE) {
+        if (isStorageUri(uri)) {
             return super.query(uri, projection, selection, selectionArgs, sortOrder, cancellationSignal);
         }
-
         TorrentPlayer.PlayerFile f = getPlayerFile(uri);
         if (f == null)
             return null;
-
         if (projection == null) {
             projection = FileProvider.COLUMNS;
         }
-
         Object[] values = new Object[projection.length];
         int i = 0;
         for (String col : projection) {
@@ -203,9 +194,7 @@ public class TorrentContentProvider extends StorageProvider {
                 values[i++] = f.getLength();
             }
         }
-
         values = FileProvider.copyOf(values, i);
-
         final MatrixCursor cursor = new MatrixCursor(projection, 1);
         cursor.addRow(values);
         return cursor;
@@ -213,26 +202,19 @@ public class TorrentContentProvider extends StorageProvider {
 
     @Override
     public String getType(Uri uri) {
-        if (uri.getPathSegments().get(0).length() == MD5_SIZE) {
+        if (isStorageUri(uri)) {
             return super.getType(uri);
         }
-
-        MainApplication app = ((MainApplication) getContext().getApplicationContext());
-
-        if (app.player == null)
+        final TorrentPlayer.PlayerFile file = getPlayerFile(uri);
+        if (file == null)
             return null;
-
-        TorrentPlayer.PlayerFile f = app.player.find(uri);
-        if (f == null)
-            return null;
-
-        return TorrentPlayer.getType(f);
+        return TorrentPlayer.getType(file);
     }
 
     @Nullable
     @Override
     public AssetFileDescriptor openAssetFile(@NonNull Uri uri, @NonNull String mode) throws FileNotFoundException {
-        if (uri.getPathSegments().get(0).length() == MD5_SIZE) {
+        if (isStorageUri(uri)) {
             return super.openAssetFile(uri, mode);
         }
         final TorrentPlayer.PlayerFile file = getPlayerFile(uri);
@@ -245,7 +227,7 @@ public class TorrentContentProvider extends StorageProvider {
     @Nullable
     @Override
     public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
-        if (uri.getPathSegments().get(0).length() == MD5_SIZE) {
+        if (isStorageUri(uri)) {
             return super.openFile(uri, mode);
         }
         final TorrentPlayer.PlayerFile file = getPlayerFile(uri);
@@ -305,7 +287,6 @@ public class TorrentContentProvider extends StorageProvider {
                 Uri u = file.getFile();
                 String s = u.getScheme();
                 if (s.startsWith(ContentResolver.SCHEME_CONTENT)) {
-                    ContentResolver resolver = getContext().getContentResolver();
                     return resolver.openFileDescriptor(u, mode);
                 } else if (s.startsWith(ContentResolver.SCHEME_FILE)) {
                     File ff = new File(u.getPath());
