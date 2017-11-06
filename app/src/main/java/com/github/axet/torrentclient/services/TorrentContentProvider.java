@@ -256,7 +256,11 @@ public class TorrentContentProvider extends ContentProvider {
     @Nullable
     @Override
     public AssetFileDescriptor openAssetFile(@NonNull Uri uri, @NonNull String mode) throws FileNotFoundException {
-        return super.openAssetFile(uri, mode);
+        final TorrentPlayer.PlayerFile file = getPlayerFile(uri);
+        if (file == null)
+            return null;
+        ParcelFileDescriptor fd = openFile(file, mode);
+        return new AssetFileDescriptor(fd, 0, file.getLength());
     }
 
     @Nullable
@@ -265,7 +269,10 @@ public class TorrentContentProvider extends ContentProvider {
         final TorrentPlayer.PlayerFile file = getPlayerFile(uri);
         if (file == null)
             return null;
+        return openFile(file, mode);
+    }
 
+    ParcelFileDescriptor openFile(final TorrentPlayer.PlayerFile file, String mode) {
         final int fileMode = FileProvider.modeToMode(mode);
 
         deleteTmp(); // will not delete opened files
