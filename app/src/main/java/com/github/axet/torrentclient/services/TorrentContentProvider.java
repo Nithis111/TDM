@@ -242,7 +242,7 @@ public class TorrentContentProvider extends StorageProvider {
         deleteTmp(); // will not delete opened files
 
         try {
-            if (file.file != null) {
+            if (file.arch != null) {
                 if (mode.equals("r")) { // r - can be pipe
                     ParcelFileDescriptor[] ff = ParcelFileDescriptor.createPipe();
                     final ParcelFileDescriptor r = ff[0];
@@ -252,7 +252,7 @@ public class TorrentContentProvider extends StorageProvider {
                         public void run() {
                             OutputStream os = new ParcelFileDescriptor.AutoCloseOutputStream(w);
                             try {
-                                file.file.copy(os);
+                                file.arch.copy(os);
                             } catch (RuntimeException e) {
                                 Log.d(TAG, "Error reading archive", e);
                             } finally {
@@ -273,7 +273,7 @@ public class TorrentContentProvider extends StorageProvider {
                     tmp = File.createTempFile(FILE_PREFIX, FILE_SUFFIX, tmp);
                     FileOutputStream os = new FileOutputStream(tmp);
                     try {
-                        file.file.copy(os);
+                        file.arch.copy(os);
                     } finally {
                         try {
                             os.close();

@@ -120,13 +120,13 @@ public class PlayerFragment extends Fragment implements MainActivity.TorrentFrag
             TextView archive = (TextView) view.findViewById(R.id.torrent_files_archive);
             TextView archiveEnd = (TextView) view.findViewById(R.id.torrent_files_archive_end);
 
-            if (f.file != null && f.index == 0) {
+            if (f.arch != null && f.index == 0) {
                 archive.setVisibility(View.VISIBLE);
                 archive.setText(FilenameUtils.getExtension(f.tor.file.getPath()));
             } else {
                 archive.setVisibility(View.GONE);
             }
-            if (f.file != null && f.index == (f.count - 1)) {
+            if (f.arch != null && f.index == (f.count - 1)) {
                 archiveEnd.setVisibility(View.VISIBLE);
                 archiveEnd.setText(FilenameUtils.getExtension(f.tor.file.getPath()));
             } else {

@@ -484,7 +484,7 @@ public class TorrentPlayer {
         public int count; // directory count
         public Uri uri;
         public TorFile tor;
-        public ArchiveFile file;
+        public ArchiveFile arch;
 
         public PlayerFile(TorFile t) {
             this.tor = t;
@@ -493,8 +493,8 @@ public class TorrentPlayer {
 
         public PlayerFile(TorFile t, ArchiveFile f) {
             this.tor = t;
-            this.file = f;
-            File ff = new File(tor.file.getPath(), file.getPath());
+            this.arch = f;
+            File ff = new File(tor.file.getPath(), arch.getPath());
             uri = TorrentContentProvider.getUriForFile(torrentHash, ff.getPath());
         }
 
@@ -505,30 +505,30 @@ public class TorrentPlayer {
         }
 
         public Uri getFile() {
-            if (file != null) { // archive file
-                return storage.child(torrent.path, file.getPath());
+            if (arch != null) { // archive file
+                return storage.child(torrent.path, arch.getPath());
             } else { // local file
                 return storage.child(torrent.path, tor.file.getPath());
             }
         }
 
         public String getPath() {
-            if (file != null) {
-                return new File(tor.file.getPath(), file.getPath()).toString();
+            if (arch != null) {
+                return new File(tor.file.getPath(), arch.getPath()).toString();
             }
             return tor.file.getPath();
         }
 
         public String getName() {
-            if (file != null) {
-                return new File(file.getPath()).getName();
+            if (arch != null) {
+                return new File(arch.getPath()).getName();
             }
             return new File(tor.file.getPath()).getName();
         }
 
         public long getLength() {
-            if (file != null)
-                return file.getLength();
+            if (arch != null)
+                return arch.getLength();
             return tor.file.getLength();
         }
 
